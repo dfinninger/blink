@@ -4,19 +4,21 @@
 #     Author:     Devon Finninger
 #     Init Date:  2014-06-04
 #
-# Notes: This is the main file that should be run to instantiate the game
+# Note: This is the main file that should be run to play the game
 
 require 'rubygems'
 require 'bundler/setup'
 require 'gosu'
+require 'yaml'
 
 require_relative 'lib/player'
 
 def media_path(file); File.expand_path "media/#{file}", File.dirname(__FILE__) end
 
 class GameWindow < Gosu::Window
-   def initialize 
-      super 640, 480, false
+   def initialize
+      config = YAML.load_file('config/window.yml')
+      super config[:width], config[:height], false
       self.caption = "Blink"
 
       @background_image = Gosu::Image.new(self, media_path("backgrounds/bluewood.jpg"), true)

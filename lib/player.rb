@@ -1,4 +1,9 @@
-# player class
+#
+#  player.rb - defines the player character
+#
+#     Author:     Devon Finninger
+#     Init Date:  2014-06-04
+#
 
 def media_path(file); File.expand_path "../media/#{file}", File.dirname(__FILE__) end
 
