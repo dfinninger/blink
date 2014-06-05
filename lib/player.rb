@@ -10,7 +10,7 @@ def media_path(file); File.expand_path "../media/#{file}", File.dirname(__FILE__
 class Player
    FOOTROOM = 54
    HEADROOM = 20
-   SIDEROOM = 0
+   SIDEROOM = 33
    WIDTH    = SIDEROOM * 2
    HEIGHT   = FOOTROOM + HEADROOM
    def initialize(window)
@@ -20,7 +20,7 @@ class Player
    end
 
    def warp(x,y)
-      @x, @y, = x, y
+      @x, @y, = @window.height/2, @window.width/2
    end
 
    def move_left; @vel_x -= 5.0 end
@@ -41,8 +41,10 @@ class Player
       @y += @vel_y
       if @x >= @window.width-SIDEROOM
          @x =  @window.width-SIDEROOM
+         @vel_x = 0
       elsif @x <= SIDEROOM
          @x = SIDEROOM
+         @vel_x = 0
       end
       if @y >= @window.height-FOOTROOM
          @y =  @window.height-FOOTROOM

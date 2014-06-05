@@ -27,6 +27,7 @@ class GameWindow < Gosu::Window
    end
 
    def update
+      puts Gosu.fps
       if button_down? Gosu::KbLeft or button_down? Gosu::GpLeft then 
          @player.move_left
       end
