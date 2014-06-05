@@ -45,6 +45,7 @@ include BlinkUtils
       if button_down? Gosu::KbUp or button_down? Gosu::GpButton0
          if @player.can_jump? and not @player_up_pressed
             @player.jump
+            @player.jumps_left -= 1
             log self, "player jumped"
          end 
          @player_up_pressed = true
