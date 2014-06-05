@@ -3,14 +3,14 @@
 require_relative 'blinkutils'
 def media_path(file); File.expand_path "../media/#{file}", File.dirname(__FILE__) end
 
-class Player
+class Enemy
 include BlinkUtils
    FOOTROOM = 54
    HEADROOM = 20
    def initialize(window)
       log self, "Initializing object..."
       @window = window
-      @image = Gosu::Image.new(window, media_path("characters/Character Boy.png"), false)
+      @image = Gosu::Image.new(window, media_path("characters/Enemy Bug.png"), false)
       log self, "Image loaded"
       @x = @y = @vel_x = @vel_y =  @angle = 0.0
    end
