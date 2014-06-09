@@ -17,7 +17,7 @@ include BlinkUtils
    HEIGHT   = FOOTROOM + HEADROOM
    GRAVITY  = 0.6
    SPEED    = 7.0
-   attr_accessor :jumps_left, :health
+   attr_accessor :jumps_left, :health, :recently_hit, :hit_timer
    def initialize(window)
       log self, "Initializing object..."
       @window = window
@@ -29,6 +29,8 @@ include BlinkUtils
       @flipping = false
       @flip_complete = false
       @health = 100
+      @recently_hit = false
+      @hit_timer = 0
    end
 
    def warp(x,y)

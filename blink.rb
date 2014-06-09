@@ -28,11 +28,11 @@ include BlinkUtils
       log self, "Background Loaded"
       @player = Player.new(self)
       log self, "Player Loaded"
-      @player.warp(320,240)
+      @player.warp(200,240)
       log self, "Player Warped"
       @enemy = Enemy.new(self)
       log self, "Enemy Loaded"
-      @enemy.warp(320,240)
+      @enemy.warp(400,240)
       log self, "Enemy Warped"
 
       @font = Gosu::Font.new(self, Gosu::default_font_name, 18)
@@ -83,7 +83,21 @@ include BlinkUtils
       @enemy.move
 
       if collision?(@player, @enemy)
-        @player.health -= 10
+        unless @player.recently_hit
+          @player.health -= 10
+          @player.recently_hit = true
+        end
+      else
+        @player.recently_hit = false
+        @player.hit_timer = 0
+      end
+
+      if @player.recently_hit
+        @player.hit_timer += 1
+        @player.hit_timer %= 25
+        if @player.hit_timer == 0
+          @player.recently_hit
+        end
       end
    end
 
