@@ -15,7 +15,9 @@ include BlinkUtils
    SIDEROOM = 33
    WIDTH    = SIDEROOM * 2
    HEIGHT   = FOOTROOM + HEADROOM
-   attr_accessor :jumps_left
+   GRAVITY  = 0.6
+   SPEED    = 7.0
+   attr_accessor :jumps_left, :health, :recently_hit, :hit_timer
    def initialize(window)
       log self, "Initializing object..."
       @window = window
@@ -26,14 +28,17 @@ include BlinkUtils
       @x_dir = 0
       @flipping = false
       @flip_complete = false
+      @health = 100
+      @recently_hit = false
+      @hit_timer = 0
    end
 
    def warp(x,y)
       @x, @y, = @window.height/2, @window.width/2
    end
 
-   def move_left; @vel_x -= 5.0 end
-   def move_right; @vel_x += 5.0 end
+   def move_left;  @vel_x -= SPEED end
+   def move_right; @vel_x += SPEED end
 
    def jump
      @vel_y -= (5 * @jumps_left)
@@ -46,6 +51,12 @@ include BlinkUtils
      else
        return false
      end
+   end
+
+   def hitbox
+    hitbox_x = ((@x - @image.width/2).to_i..(@x + @image.width/2))
+    hitbox_y = ((@x - @image.height/2).to_i..(@x + @image.height/2))
+    {:x => hitbox_x, :y => hitbox_y}
    end
 
    def move
@@ -68,10 +79,8 @@ include BlinkUtils
          @vel_y = 0
       end
 
-      log self, "Angle = #{@angle}"
-
       if @y <= (@window.height-FOOTROOM-50) and @jumps_left == 0 and not @flip_complete
-        if @angle <= 360.0 and @angle >= -360.0
+        if @angle <= 355.0 and @angle >= -355.0
           @angle += 14.99*@x_dir
           @flipping = true
         else
@@ -85,7 +94,7 @@ include BlinkUtils
 
       @vel_x *= 0.5
       if @vel_x >= -0.1 and @vel_x <= 0.1 then @vel_x = 0 end
-      @vel_y = @vel_y + 0.3
+      @vel_y = @vel_y + GRAVITY
    end
 
    def draw

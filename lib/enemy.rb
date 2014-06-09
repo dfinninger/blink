@@ -32,6 +32,12 @@ include BlinkUtils
      end
    end
 
+   def hitbox
+    hitbox_x = ((@x - @image.width/2).to_i..(@x + @image.width/2))
+    hitbox_y = ((@x - @image.height/2).to_i..(@x + @image.height/2))
+    {:x => hitbox_x, :y => hitbox_y}
+   end
+
    def move
       @x += @vel_x
       @y += @vel_y
