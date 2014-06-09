@@ -34,6 +34,15 @@ include BlinkUtils
       log self, "Enemy Loaded"
       @enemy.warp(320,240)
       log self, "Enemy Warped"
+
+      @font = Gosu::Font.new(self, Gosu::default_font_name, 18)
+   end
+
+   def collision?(object_1, object_2)
+     hitbox_1, hitbox_2 = object_1.hitbox, object_2.hitbox
+     common_x = hitbox_1[:x].to_a & hitbox_2[:x].to_a
+     common_y = hitbox_1[:y].to_a & hitbox_2[:y].to_a
+     common_x.size > 0 && common_y.size > 0
    end
 
    def update
@@ -72,12 +81,17 @@ include BlinkUtils
          @enemy_up_pressed = false
       end
       @enemy.move
+
+      if collision?(@player, @enemy)
+        @player.health -= 10
+      end
    end
 
    def draw
       @player.draw
       @enemy.draw
       @background_image.draw(-200,-200,0)
+      @font.draw("Player HP: <c=ff0000>#{@player.health}</c>", 10, 10, 1.0, 1.0, 1.0)
    end
 
    def button_down(id)
