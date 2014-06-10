@@ -5,7 +5,6 @@
 #     Init Date:  2014-06-04
 #
 
-require_relative 'blinkutils'
 def media_path(file); File.expand_path "../media/#{file}", File.dirname(__FILE__) end
 
 class Player
@@ -18,6 +17,7 @@ include BlinkUtils
    GRAVITY  = 0.6
    SPEED    = 7.0
    attr_accessor :jumps_left, :health, :recently_hit, :hit_timer
+   attr_reader   :x, :y
    def initialize(window)
       log self, "Initializing object..."
       @window = window

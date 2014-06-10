@@ -1,6 +1,5 @@
 # player class
 
-require_relative 'blinkutils'
 def media_path(file); File.expand_path "../media/#{file}", File.dirname(__FILE__) end
 
 class Enemy
