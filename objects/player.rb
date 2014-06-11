@@ -20,8 +20,9 @@ class Player
   SPEED = 7.0
   MAX_PERCENT = 100
 
-  attr_accessor :health, :base_health, :recently_hit, :on_left_wall, :on_right_wall, :blink_charge
-  attr_reader :loc
+  attr_accessor :loc, :health, :base_health, :recently_hit, :on_left_wall,
+                :on_right_wall, :off_ground, :blink_charge
+  attr_reader :foot, :left, :right
 
   def initialize(window)
     # init window for player ----------------------------------------------------------
@@ -37,6 +38,7 @@ class Player
     @vel_x = @vel_y = @angle = 0.0
     @loc = MyObj::Loc.new(0,0)
     @jump_millis = @blink_millis = 0
+    @foot = @right = @left = 0
 
     # set player variables ------------------------------------------------------------
     @health = @config[:current_health]
@@ -48,7 +50,7 @@ class Player
     @up_still_pressed = false
     @on_left_wall = false
     @on_right_wall = false
-    @off_ground = false
+    @off_ground = true
   end
 
   def warp(loc)
@@ -56,8 +58,8 @@ class Player
   end
 
   def hitbox
-    hitbox_x = ((@loc.x - @image.width/2 + SIDEROOM).to_i..(@loc.x + @image.width/2 - SIDEROOM))
-    hitbox_y = ((@loc.y - @image.height/2 + HEADROOM).to_i..(@loc.y + @image.height/2 - FOOTROOM))
+    hitbox_x = ((@loc.x - SIDEROOM).to_i..(@loc.x + SIDEROOM).to_i)
+    hitbox_y = ((@loc.y - HEADROOM).to_i..(@loc.y + FOOTROOM).to_i)
     {:x => hitbox_x, :y => hitbox_y}
   end
 
@@ -89,7 +91,12 @@ class Player
     # apply friction and gravity to movement
     @vel_x *= 0.5
     @vel_x = 0 if (@vel_x >= -0.1) and (@vel_x <= 0.1)
-    @vel_y = @vel_y + @config[:gravity]
+    @vel_y = @off_ground ? @vel_y + @config[:gravity] : 0
+
+    # find out where the player's feet are
+    @foot = (@loc.y + FOOTROOM).to_i
+    @right = (@loc.x - SIDEROOM).to_i
+    @left = (@loc.x + SIDEROOM).to_i
   end
 
   def draw(camera)
