@@ -51,6 +51,7 @@ class Player
     @on_left_wall = false
     @on_right_wall = false
     @off_ground = true
+    @already_walljumped = false
   end
 
   def warp(loc)
@@ -64,7 +65,7 @@ class Player
   end
 
   def update(left_pressed, right_pressed, up_pressed)
-    # check for key presses
+    # check for key presses -----------------------------------------------------------
     if left_pressed then
       @vel_x -= @config[:speed]
     end
@@ -81,19 +82,19 @@ class Player
       @up_still_pressed = false
     end
 
-    # update location values
+    # update location values ----------------------------------------------------------
     @loc.x += @vel_x
     @loc.y += @vel_y
 
-    # check if player is on a wall
+    # check if player is on a wall ----------------------------------------------------
     check_wall_collisions
 
-    # apply friction and gravity to movement
+    # apply friction and gravity to movement ------------------------------------------
     @vel_x *= 0.5
     @vel_x = 0 if (@vel_x >= -0.1) and (@vel_x <= 0.1)
     @vel_y = @off_ground ? @vel_y + @config[:gravity] : 0
 
-    # find out where the player's feet are
+    # find out where the player's feet are ---------------------------------------------
     @foot = (@loc.y + FOOTROOM).to_i
     @right = (@loc.x - SIDEROOM).to_i
     @left = (@loc.x + SIDEROOM).to_i
@@ -111,14 +112,16 @@ class Player
 
   def jump
     if @off_ground
-      if @on_left_wall
-        @vel_y -= 10
-        @loc.x -= 1
-        @vel_x -= 5
-      elsif @on_right_wall
+      if @on_left_wall and not @already_walljumped
         @vel_y -= 10
         @loc.x += 1
-        @vel_x += 5
+        @vel_x += SPEED
+        @already_walljumped = true
+      elsif @on_right_wall and not @already_walljumped
+        @vel_y -= 10
+        @loc.x -= 1
+        @vel_x -= SPEED
+        @already_walljumped = true
       end
     else
       @vel_y -= 15
@@ -147,6 +150,7 @@ class Player
       @loc.y = @window.levelbox.bot-FOOTROOM
       @vel_y = 0
       @off_ground = false
+      @already_walljumped = false
     elsif @loc.y <= @window.levelbox.top+HEADROOM
       @loc.y = @window.levelbox.top+HEADROOM
       @vel_y = 0
