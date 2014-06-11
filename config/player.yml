@@ -5,3 +5,4 @@
 :speed: 7.0
 :gravity: 0.4
 :blink_recharge_rate: 10
+:jumpheight: 15

@@ -113,18 +113,18 @@ class Player
   def jump
     if @off_ground
       if @on_left_wall and not @already_walljumped
-        @vel_y -= 10
+        @vel_y -= @config[:jumpheight] * 0.666
         @loc.x += 1
         @vel_x += @config[:speed]
         @already_walljumped = true
       elsif @on_right_wall and not @already_walljumped
-        @vel_y -= 10
+        @vel_y -= @config[:jumpheight] * 0.666
         @loc.x -= 1
         @vel_x -= @config[:speed]
         @already_walljumped = true
       end
     else
-      @vel_y -= 15
+      @vel_y -= @config[:jumpheight]
     end
   end
 
