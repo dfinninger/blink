@@ -30,7 +30,7 @@ end
 class GameWindow < Gosu::Window
   include BlinkUtils
 
-  attr_reader :levelbox
+  attr_reader :levelbox, :level
   def initialize
     @config = YAML.load_file('config/window.yml')
     super @config[:width], @config[:height], @config[:fullscreen]
@@ -41,7 +41,10 @@ class GameWindow < Gosu::Window
     log self, "Camera loaded" if @config[:logging_enabled]
 
     # Walls, ceiling and floor -----------------------------------------------------------
-    @levelbox = MyObj::LevelBox.new(0, 1920, 0, 1080)
+    @levelbox = MyObj::LevelBox.new(0, 4340, 0, 1980)
+
+    # init level -------------------------------------------------------------------------
+    @level = Level.new(self, media_path("levels/CptnRuby Map.txt"))
 
     # Background Image -------------------------------------------------------------------
     #@background_image = Gosu::Image.new(self, media_path("backgrounds/bluewood.jpg"), true)
@@ -60,9 +63,6 @@ class GameWindow < Gosu::Window
     # Wall padding -----------------------------------------------------------------------
     @padding = @config[:levelbox_padding]
 
-    # init level -------------------------------------------------------------------------
-    @level = Level.new(self, media_path("levels/CptnRuby Map.txt"))
-
   end # -- end initialization --
 
   def update
@@ -77,6 +77,7 @@ class GameWindow < Gosu::Window
     @background.draw(@camera)
     @font.draw("Player HP: <c=ff0000>#{@player.health}/#{@player.base_health}</c>", 10, 10, ZOrder::HUD)
     @font.draw("Blink Charge: <c=00ff00>#{@player.blink_charge}%</c>", 10, 30, ZOrder::HUD)
+    @font.draw("<c=0000ff>NO_CLIP ENABLED!</c>", 10, 50, ZOrder::HUD) if @player.config[:noclip]
     @level.draw(@camera)
   end
 
@@ -85,6 +86,7 @@ class GameWindow < Gosu::Window
       save
       close
     end
+    @player.keypress_handler(id)
   end
 
   private
@@ -102,7 +104,6 @@ class GameWindow < Gosu::Window
       @camera.y = @levelbox.top-@padding if @camera.y <= @levelbox.top-@padding
       @camera.y = @levelbox.bot-self.height+@padding if @camera.y >= @levelbox.bot-self.height+@padding
     end
-
     log self, "Camera loc - x: #{@camera.x}, y: #{@camera.y}" if @config[:logging_enabled]
   end
 

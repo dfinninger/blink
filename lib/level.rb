@@ -5,24 +5,25 @@ def media_path(file)
 end
 
 class Level
-  TILE_SIZE = 100
+  TILE_SIZE = 80
   def initialize(window, load_file)
-    @tileset = [Gosu::Image.new(window, media_path("blocks/Plain Block.png"), true)]
+    @tileset = Gosu::Image.load_tiles(window, media_path("tilesets/plat_tiles.png"), TILE_SIZE, TILE_SIZE, true)
 
-    gem_image = Gosu::Image.new(window, media_path("gems/Gem Green.png"), false)
+    gem_image = @tileset[19]
+    #gem_image = Gosu::Image.new(window, media_path("gems/Gem Green.png"), false)
     @gems = []
 
     @config = YAML.load_file('config/level.yml')
-    level   = File.readlines(load_file).map { |line| line.chomp }
-    @height = @config[:height]/TILE_SIZE
-    @width  = @config[:width]/TILE_SIZE
+    lines   = File.readlines(load_file).map { |line| line.chomp }
+    @height = lines.size
+    @width  = lines[0].size
     @tiles  = Array.new(@width) do |x|
       Array.new(@height) do |y|
-        case level [y][x, 1]
+        case lines[y][x, 1]
           when '#'
-            0
+            7
           when 'x'
-            @gems.push(Collectibles::Gem.new(gem_image,  x * 100 + 25, y * 100 + 25))
+            @gems.push(Collectibles::Gem.new(gem_image,  x * TILE_SIZE + 25, y * TILE_SIZE + 25))
             nil
           else
             nil
@@ -34,7 +35,7 @@ class Level
       @height.times do |y|
         @width.times do |x|
           tile = @tiles[x][y]
-          loc = MyObj::Loc.new(x * 100 - 5, y * 85 - 5)
+          loc = MyObj::Loc.new(x * TILE_SIZE + 25, y * TILE_SIZE + 25)
           @tileset[tile].draw_rot(*camera.world_to_screen(loc).to_a, ZOrder::Terrain, 0.0) if tile
         end
       end
@@ -43,6 +44,6 @@ class Level
   end
 
   def solid?(x, y)
-    y < 0 || @tiles[x / 50][y / 50]
+    y < 0 || @tiles[x / TILE_SIZE][y / TILE_SIZE]
   end
 end

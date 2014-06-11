@@ -21,18 +21,23 @@ class Player
   MAX_PERCENT = 100
 
   attr_accessor :loc, :health, :base_health, :recently_hit, :on_left_wall,
-                :on_right_wall, :off_ground, :blink_charge
+                :on_right_wall, :off_ground, :blink_charge, :config
   attr_reader :foot, :left, :right
 
   def initialize(window)
-    # init window for player ----------------------------------------------------------
-    @window = window
-
-    # load resources
+    # load config ---------------------------------------------------------------------
     @config = YAML.load_file('config/player.yml')
       log self, "Initializing object..."  if @config[:logging_enabled]
+
+    # init window for player ----------------------------------------------------------
+    @window = window
+      log self, "Player knows about window: #{@window}"  if @config[:logging_enabled]
+    @level = @window.level
+    log self, "Player knows about level: #{@level}"  if @config[:logging_enabled]
+
+    # load resources ------------------------------------------------------------------
     @image = Gosu::Image.new(window, media_path("characters/Character Boy.png"), false)
-      log self, "Image loaded"  if @config[:logging_enabled]
+      log self, "Player Image (#{@image}) loaded"  if @config[:logging_enabled]
 
     # normalize angles and locations --------------------------------------------------
     @vel_x = @vel_y = @angle = 0.0
@@ -82,9 +87,8 @@ class Player
       @up_still_pressed = false
     end
 
-    # update location values ----------------------------------------------------------
-    @loc.x += @vel_x
-    @loc.y += @vel_y
+    # make the player actually move ---------------------------------------------------
+    @config[:noclip] ? move_noclip : move
 
     # check if player is on a wall ----------------------------------------------------
     check_wall_collisions
@@ -94,10 +98,12 @@ class Player
     @vel_x = 0 if (@vel_x >= -0.1) and (@vel_x <= 0.1)
     @vel_y = @off_ground ? @vel_y + @config[:gravity] : 0
 
-    # find out where the player's feet are ---------------------------------------------
+    # find out where the player's feet are --------------------------------------------
     @foot = (@loc.y + FOOTROOM).to_i
     @right = (@loc.x - SIDEROOM).to_i
     @left = (@loc.x + SIDEROOM).to_i
+
+
   end
 
   def draw(camera)
@@ -108,7 +114,30 @@ class Player
     File.open('config/player.yml', 'w+') {  |f| f.write(@config.to_yaml) }
   end
 
+  def keypress_handler(id)
+    case id
+      when Gosu::KbBacktick
+        @config[:noclip] = !@config[:noclip]
+    end
+  end
+
+
   private
+
+  def move
+    @vel_x.floor.to_i.times{ @loc.x += would_fit? ? 1 : 0}
+    @loc.y += @vel_y
+  end
+
+  def move_noclip
+    @loc.x += @vel_x
+    @loc.y += @vel_y
+  end
+
+  def would_fit?
+    not @level.solid?(*@loc.to_a) and
+        not @level.solid?(@loc.x, @loc.y-45)
+  end
 
   def jump
     if @off_ground
