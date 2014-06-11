@@ -1,4 +1,4 @@
-blink
+Blink
 =====
 
-First Game with Graphics
+An exciting platformer in which you do things and stuff happens!
