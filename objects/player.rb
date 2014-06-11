@@ -67,10 +67,10 @@ class Player
   def update(left_pressed, right_pressed, up_pressed)
     # check for key presses -----------------------------------------------------------
     if left_pressed then
-      @vel_x -= @config[:speed]
+      @vel_x -= @off_ground ? @config[:speed]/10 : @config[:speed]
     end
     if right_pressed then
-      @vel_x += @config[:speed]
+      @vel_x += @off_ground ? @config[:speed]/10 : @config[:speed]
     end
     if up_pressed then
       if (Gosu::milliseconds - @jump_millis) > 250 and not @up_still_pressed
@@ -90,7 +90,7 @@ class Player
     check_wall_collisions
 
     # apply friction and gravity to movement ------------------------------------------
-    @vel_x *= 0.5
+    @vel_x *= @off_ground ? 0.9 : 0.5
     @vel_x = 0 if (@vel_x >= -0.1) and (@vel_x <= 0.1)
     @vel_y = @off_ground ? @vel_y + @config[:gravity] : 0
 
@@ -115,12 +115,12 @@ class Player
       if @on_left_wall and not @already_walljumped
         @vel_y -= 10
         @loc.x += 1
-        @vel_x += SPEED
+        @vel_x += @config[:speed]
         @already_walljumped = true
       elsif @on_right_wall and not @already_walljumped
         @vel_y -= 10
         @loc.x -= 1
-        @vel_x -= SPEED
+        @vel_x -= @config[:speed]
         @already_walljumped = true
       end
     else
