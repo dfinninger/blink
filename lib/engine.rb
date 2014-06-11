@@ -15,11 +15,13 @@ require_relative 'zorder'
 require_relative 'blinkutils'
 require_relative 'myobj'
 require_relative 'camera'
+require_relative 'level'
 
 require_relative '../objects/enemy'
 require_relative '../objects/player'
 require_relative '../objects/background'
 require_relative '../objects/platform'
+require_relative '../objects/collectibles'
 
 def media_path(file)
   File.expand_path "../media/#{file}", File.dirname(__FILE__)
@@ -58,6 +60,9 @@ class GameWindow < Gosu::Window
     # Wall padding -----------------------------------------------------------------------
     @padding = @config[:levelbox_padding]
 
+    # init level -------------------------------------------------------------------------
+    @level = Level.new(self, media_path("levels/CptnRuby Map.txt"))
+
   end # -- end initialization --
 
   def update
@@ -72,6 +77,7 @@ class GameWindow < Gosu::Window
     @background.draw(@camera)
     @font.draw("Player HP: <c=ff0000>#{@player.health}/#{@player.base_health}</c>", 10, 10, ZOrder::HUD)
     @font.draw("Blink Charge: <c=00ff00>#{@player.blink_charge}%</c>", 10, 30, ZOrder::HUD)
+    @level.draw(@camera)
   end
 
   def button_down(id)
