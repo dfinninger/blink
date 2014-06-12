@@ -6,4 +6,4 @@
 :gravity: 0.4
 :blink_recharge_rate: 10
 :jumpheight: 15
-:noclip: false
+:noclip: true
