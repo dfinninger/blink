@@ -17,11 +17,12 @@ class Player
   WIDTH = SIDEROOM * 2
   HEIGHT = FOOTROOM + HEADROOM
   GRAVITY = 0.4
-  SPEED = 7.0
   MAX_PERCENT = 100
+  MAX_FALL_SPEED = 50
 
   attr_accessor :loc, :health, :base_health, :recently_hit, :on_left_wall,
-                :on_right_wall, :off_ground, :blink_charge, :config
+                :on_right_wall, :off_ground, :blink_charge, :config,
+                :gems_collected
   attr_reader :foot, :left, :right
 
   def initialize(window)
@@ -55,8 +56,8 @@ class Player
     @up_still_pressed = false
     @on_left_wall = false
     @on_right_wall = false
-    @off_ground = true
     @already_walljumped = false
+    @gems_collected = 0
   end
 
   def warp(loc)
@@ -90,16 +91,34 @@ class Player
     # make the player actually move ---------------------------------------------------
     @config[:noclip] ? move_noclip : move
 
+    # collect any goodies we may have passed over -------------------------------------
+    collect_goodies(@level.gems)
+
     # check if player is on a wall ----------------------------------------------------
     check_wall_collisions
 
     # apply friction and gravity to movement ------------------------------------------
-    @vel_x *= on_floor? ? 0.5 : 0.9
+    @vel_x = @config[:max_run_speed] if @vel_x > @config[:max_run_speed]
+    @vel_x = -@config[:max_run_speed] if @vel_x < -@config[:max_run_speed]
+    unless right_pressed or left_pressed
+      @vel_x *= 0.5 if on_floor?
+    end
+    @vel_x *= 0.9 unless on_floor?
     @vel_x = 0 if (@vel_x >= -0.1) and (@vel_x <= 0.1)
     @vel_y = on_floor? ? 0 : @vel_y + @config[:gravity]
-    @vel_y = 0 if on_floor?
+    @vel_y = MAX_FALL_SPEED if @vel_y > MAX_FALL_SPEED
 
-    puts "#{on_floor?} :: #{@vel_y}"
+    # walljump ------------------------------------------------------------------------
+    @already_walljumped = false unless on_left_wall? or on_right_wall?
+
+    #adjust player angle --------------------------------------------------------------
+    if on_left_wall? and not near_floor?
+      @angle = 20.0
+    elsif on_right_wall? and not near_floor?
+      @angle = -20.0
+    else
+      @angle = 0.0
+    end
   end
 
   def draw(camera)
@@ -114,6 +133,9 @@ class Player
     case id
       when Gosu::KbBacktick
         @config[:noclip] = !@config[:noclip]
+      when Gosu::KbR
+        warp(MyObj::Loc.new(500,500))
+      when Gosu::KbQ
     end
   end
 
@@ -121,51 +143,97 @@ class Player
   private
 
   def move
-    @vel_x.floor.to_i.abs.times { @loc.x += would_fit_x? ? (@vel_x <=> 0) : 0 }
-    @vel_y.floor.to_i.abs.times { @loc.y += would_fit_y? ? (@vel_y <=> 0) : 0 }
+    if (@vel_x <=> 0) == 1
+      @vel_x.to_i.abs.times { @loc.x += would_fit_right? ? 1 : 0 }
+    elsif (@vel_x <=> 0) == -1
+      @vel_x.to_i.abs.times { @loc.x += would_fit_left? ? -1 : 0 }
+    end
+
+    if (@vel_y <=> 0) == 1
+      @vel_y.to_i.abs.times { @loc.y += on_floor? ? 0 : 1 }
+    elsif (@vel_y <=> 0) == -1
+      @vel_y.to_i.abs.times { @loc.y += would_fit_up? ? -1 : 0 }
+      @vel_y = 0 unless would_fit_up?
+    end
   end
 
   def move_noclip
-    @vel_x.floor.to_i.abs.times { @loc.x += (@vel_x <=> 0) }
-    @vel_y.floor.to_i.abs.times { @loc.y += (@vel_y <=> 0) }
+    @vel_x.to_i.abs.times { @loc.x += (@vel_x <=> 0) }
+    @vel_y.to_i.abs.times { @loc.y += (@vel_y <=> 0) }
   end
 
-  def would_fit_x?
-    not @level.solid?(@loc.x-@image.width/2, @loc.y+@image.height/2-1) and
-        not @level.solid?(@loc.x-@image.width/2, @loc.y-@image.height/2+1) and
-        not @level.solid?(@loc.x+@image.width/2, @loc.y+@image.height/2-1) and
-        not @level.solid?(@loc.x+@image.width/2, @loc.y-@image.height/2+1)
+  def would_fit?(x_offset, y_offset)
+    not @level.solid?(@loc.x + x_offset, @loc.y + y_offset) and
+        not @level.solid?(@loc.x + x_offset, @loc.y + y_offset - @image.height/2)
   end
 
-  def would_fit_y?
-    not @level.solid?(@loc.x-@image.width/2, @loc.y+@image.height/2) and
-        not @level.solid?(@loc.x-@image.width/2, @loc.y-@image.height/2) and
-        not @level.solid?(@loc.x+@image.width/2, @loc.y+@image.height/2) and
-        not @level.solid?(@loc.x+@image.width/2, @loc.y-@image.height/2)
+  def would_fit_left?
+    ((@loc.y-@image.height/2+1).to_i..(@loc.y+@image.height/2-1).to_i).each do |y|
+      if @level.solid?(@loc.x+14,y)
+        @on_left_wall = true
+        return false
+      end
+    end
+    @on_left_wall = false
+    true
+  end
+
+  def on_left_wall?
+    not would_fit?(-20,0)
+  end
+  def on_right_wall?
+    not would_fit?(@image.width+20,0)
+  end
+
+  def would_fit_right?
+    ((@loc.y-@image.height/2+1).to_i..(@loc.y+@image.height/2-1).to_i).each do |y|
+      if @level.solid?(@loc.x+@image.width-14,y)
+        @on_right_wall = true
+        return false
+      end
+    end
+    @on_right_wall = false
+    true
+  end
+
+  def would_fit_up?
+    ((@loc.x+@image.width/2-15).to_i..(@loc.x+@image.width/2+15).to_i).each do |x|
+      return false if @level.solid?(x,@loc.y-@image.height/2)
+    end
+    true
   end
 
   def on_floor?
-    ((@loc.x-@image.width/2).to_i..(@loc.x+@image.width/2).to_i).each do |x|
-      if @level.solid?(x,@loc.y+@image.height/2) then return true end
+    ((@loc.x+@image.width/2-15).to_i..(@loc.x+@image.width/2+15).to_i).each do |x|
+      if @level.solid?(x,@loc.y+@image.height/2)
+        @already_walljumped = false
+        return true
+      end
     end
+    false
+  end
+
+  def near_floor?
+    ((@loc.x+@image.width/2-15).to_i..(@loc.x+@image.width/2+15).to_i).each do |x|
+      return true if @level.solid?(x,@loc.y+@image.height/2+80)
+    end
+    false
   end
 
   def jump
     if on_floor?
-      if not on_floor?
-        if @on_left_wall and not @already_walljumped
-          @vel_y -= @config[:jumpheight] * 0.666
-          @loc.x += 1
-          @vel_x += @config[:speed]
-          @already_walljumped = true
-        elsif @on_right_wall and not @already_walljumped
-          @vel_y -= @config[:jumpheight] * 0.666
-          @loc.x -= 1
-          @vel_x -= @config[:speed]
-          @already_walljumped = true
-        end
-      else
-        @vel_y -= @config[:jumpheight]
+      @vel_y -= @config[:jumpheight]
+    else
+      if on_left_wall? and not @already_walljumped
+        @vel_y -= @config[:jumpheight] * 0.666
+        @loc.x += 1
+        @vel_x += @config[:speed]
+        @already_walljumped = true
+      elsif on_right_wall? and not @already_walljumped
+        @vel_y -= @config[:jumpheight] * 0.666
+        @loc.x -= 1
+        @vel_x -= @config[:speed]
+        @already_walljumped = true
       end
     end
   end
@@ -195,6 +263,16 @@ class Player
     elsif @loc.y <= @window.levelbox.top+@image.height/2
       @loc.y = @window.levelbox.top+@image.height/2
       @vel_y = 0
+    end
+  end
+
+  def collect_goodies(goodies)
+    # Same as in the tutorial game.
+    goodies.reject! do |c|
+      if (c.loc.x - @loc.x).abs < 50 and (c.loc.y - @loc.y).abs < 50
+        @gems_collected += 1
+        true
+      end
     end
   end
 end

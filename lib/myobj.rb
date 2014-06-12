@@ -21,6 +21,12 @@ module MyObj
       result.y -= b.y
       result
     end
+    def <=(b)
+      result = dup
+      j = result.x.abs <= b.x.abs
+      k = result.y.abs <= b.y.abs
+      j and k
+    end
 
     def to_a
       [@x, @y]

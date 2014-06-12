@@ -2,8 +2,9 @@
 :logging_enabled: true
 :current_health: 100
 :base_health: 100
-:speed: 7.0
-:gravity: 0.4
+:speed: 3.0
+:gravity: 0.6
 :blink_recharge_rate: 10
 :jumpheight: 15
-:noclip: true
+:noclip: false
+:max_run_speed: 10.0

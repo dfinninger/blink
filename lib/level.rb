@@ -6,6 +6,8 @@ end
 
 class Level
   TILE_SIZE = 80
+  attr_accessor :gems
+  attr_reader :start, :goal
   def initialize(window, load_file)
     @tileset = Gosu::Image.load_tiles(window, media_path("tilesets/plat_tiles.png"), TILE_SIZE, TILE_SIZE, true)
 
@@ -14,6 +16,8 @@ class Level
     @gems = []
 
     @config = YAML.load_file('config/level.yml')
+    @start  = MyObj::Loc.new(window.width/2, window.height/2)
+    @goal   = MyObj::Loc.new(0, 0)
     lines   = File.readlines(load_file).map { |line| line.chomp }
     @height = lines.size
     @width  = lines[0].size
@@ -21,9 +25,21 @@ class Level
       Array.new(@height) do |y|
         case lines[y][x, 1]
           when '#'
-            7
+            { :tile => 7, :angle => 0.0 }
+          when '^'
+            { :tile => 2, :angle => 0.0 }
+          when '>'
+            { :tile => 2, :angle => 90.0 }
+          when '<'
+            { :tile => 2, :angle => -90.0 }
+          when 'S'
+            @start = MyObj::Loc.new(x*TILE_SIZE,y*TILE_SIZE)
+            { :tile => 0, :angle => 0.0 }
+          when 'G'
+            @goal = MyObj::Loc.new(x*TILE_SIZE,y*TILE_SIZE)
+            { :tile => 1, :angle => 0.0 }
           when 'x'
-            @gems.push(Collectibles::Gem.new(gem_image,  x * TILE_SIZE, y * TILE_SIZE + TILE_SIZE/2))
+            @gems.push(Collectibles::Gem.new(gem_image,  x * TILE_SIZE + 7, y * TILE_SIZE + TILE_SIZE/2))
             nil
           else
             nil
@@ -35,8 +51,8 @@ class Level
       @height.times do |y|
         @width.times do |x|
           tile = @tiles[x][y]
-          loc = MyObj::Loc.new(x * TILE_SIZE, y * TILE_SIZE + TILE_SIZE/2)
-          @tileset[tile].draw_rot(*camera.world_to_screen(loc).to_a, ZOrder::Terrain, 0.0) if tile
+          loc = MyObj::Loc.new(x * TILE_SIZE + 7, y * TILE_SIZE + TILE_SIZE/2)
+          @tileset[tile[:tile]].draw_rot(*camera.world_to_screen(loc).to_a, ZOrder::Terrain, tile[:angle]) if tile
         end
       end
       @gems.each { |c| c.draw(camera) }
@@ -44,10 +60,15 @@ class Level
   end
 
   def solid?(x, y)
-    if y < 0 || @tiles[x / TILE_SIZE][y / TILE_SIZE]
-      return true
-    else
-      return false
-    end
+    return false unless @tiles[x / TILE_SIZE][y / TILE_SIZE]
+    [7,2].include?(@tiles[x / TILE_SIZE][y / TILE_SIZE][:tile])
+  end
+
+  def height
+    @height * TILE_SIZE
+  end
+
+  def width
+    @width * TILE_SIZE
   end
 end

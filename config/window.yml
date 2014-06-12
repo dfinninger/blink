@@ -1,6 +1,8 @@
 ---
 :height: 600
-:width: 1000
+:width: 800
 :fullscreen: false
 :logging_enabled: false
 :levelbox_padding: 0
+:show_cursor: false
+:debug: false

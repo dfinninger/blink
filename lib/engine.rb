@@ -11,7 +11,7 @@ require 'rubygems'
 require 'gosu'
 require 'yaml'
 
-require_relative 'zorder'
+require_relative 'zorder_enums'
 require_relative 'blinkutils'
 require_relative 'myobj'
 require_relative 'camera'
@@ -22,6 +22,7 @@ require_relative '../objects/player'
 require_relative '../objects/background'
 require_relative '../objects/platform'
 require_relative '../objects/collectibles'
+require_relative '../objects/cursor'
 
 def media_path(file)
   File.expand_path "../media/#{file}", File.dirname(__FILE__)
@@ -40,11 +41,12 @@ class GameWindow < Gosu::Window
     @camera = Camera.new(0, 0, :stop_at_wall)
     log self, "Camera loaded" if @config[:logging_enabled]
 
-    # Walls, ceiling and floor -----------------------------------------------------------
-    @levelbox = MyObj::LevelBox.new(0, 4340, 0, 1980)
-
     # init level -------------------------------------------------------------------------
     @level = Level.new(self, media_path("levels/CptnRuby Map.txt"))
+    @goal_fudge_factor = MyObj::Loc.new(65,65)
+
+    # Walls, ceiling and floor -----------------------------------------------------------
+    @levelbox = MyObj::LevelBox.new(0, @level.width, 0, @level.height)
 
     # Background Image -------------------------------------------------------------------
     #@background_image = Gosu::Image.new(self, media_path("backgrounds/bluewood.jpg"), true)
@@ -54,14 +56,22 @@ class GameWindow < Gosu::Window
     # Player -----------------------------------------------------------------------------
     @player = Player.new(self)
     log self, "Player Loaded" if @config[:logging_enabled]
-    @player.warp(MyObj::Loc.new(500,500))
+    @player.warp(@level.start)
     log self, "Player Warped" if @config[:logging_enabled]
+
+    # cursor -----------------------------------------------------------------------------
+    @cursor = Cursor.new(self, media_path("cursors/windows_cursor.png"), true) if @config[:show_cursor]
 
     # Game Font --------------------------------------------------------------------------
     @font = Gosu::Font.new(self, Gosu::default_font_name, 18)
+    @large_font = Gosu::Font.new(self, Gosu::default_font_name, 100)
 
     # Wall padding -----------------------------------------------------------------------
     @padding = @config[:levelbox_padding]
+
+    # State Variables --------------------------------------------------------------------
+    @level_complete = false
+    @eol_millis = 0
 
   end # -- end initialization --
 
@@ -70,15 +80,23 @@ class GameWindow < Gosu::Window
                    (button_down? Gosu::KbRight),
                    (button_down? Gosu::KbUp))
     update_camera
+    if @level.gems.length == 0 and not @level_complete and (@player.loc - @level.goal <= @goal_fudge_factor)
+      @level_complete = true
+      @eol_millis = Gosu::milliseconds
+    end
   end
 
   def draw
-    @player.draw(@camera)
-    @background.draw(@camera)
-    @font.draw("Player HP: <c=ff0000>#{@player.health}/#{@player.base_health}</c>", 10, 10, ZOrder::HUD)
-    @font.draw("Blink Charge: <c=00ff00>#{@player.blink_charge}%</c>", 10, 30, ZOrder::HUD)
-    @font.draw("<c=0000ff>NO_CLIP ENABLED!</c>", 10, 50, ZOrder::HUD) if @player.config[:noclip]
-    @level.draw(@camera)
+    if @level_complete and (Gosu::milliseconds - @eol_millis) > 250
+      @font.draw("Level Complete!", self.width/2-60, self.height/2, ZOrder::HUD)
+    else
+      @player.draw(@camera)
+      @background.draw(@camera)
+      @level.draw(@camera)
+      @cursor.draw if @config[:show_cursor]
+      draw_hud
+      draw_debug if @config[:debug]
+    end
   end
 
   def button_down(id)
@@ -90,6 +108,18 @@ class GameWindow < Gosu::Window
   end
 
   private
+
+  def draw_hud
+    @font.draw("Player HP: <c=ff0000>#{@player.health}/#{@player.base_health}</c>", 10, 10, ZOrder::HUD)
+    @font.draw("Blink Charge: <c=00ff00>#{@player.blink_charge}%</c>", 10, 30, ZOrder::HUD)
+    @font.draw("Gems Remaining: <c=ff0000>#{@level.gems.length}", self.width-175, 10, ZOrder::HUD)
+  end
+
+  def draw_debug
+    @font.draw("Mouse - X: #{mouse_x} :: Y: #{mouse_y}", 10, 50, ZOrder::HUD)
+    @font.draw("Player - X: #{@player.loc.x} :: Y: #{@player.loc.y}", 10, 70, ZOrder::HUD)
+    @font.draw("<c=0000ff>NO_CLIP ENABLED!</c>", 10, 90, ZOrder::HUD) if @player.config[:noclip]
+  end
 
   def update_camera
     if @camera.type == :track_player
