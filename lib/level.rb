@@ -9,7 +9,7 @@ class Level
   def initialize(window, load_file)
     @tileset = Gosu::Image.load_tiles(window, media_path("tilesets/plat_tiles.png"), TILE_SIZE, TILE_SIZE, true)
 
-    gem_image = @tileset[19]
+    gem_image = @tileset[18]
     #gem_image = Gosu::Image.new(window, media_path("gems/Gem Green.png"), false)
     @gems = []
 
@@ -23,7 +23,7 @@ class Level
           when '#'
             7
           when 'x'
-            @gems.push(Collectibles::Gem.new(gem_image,  x * TILE_SIZE + 25, y * TILE_SIZE + 25))
+            @gems.push(Collectibles::Gem.new(gem_image,  x * TILE_SIZE, y * TILE_SIZE + TILE_SIZE/2))
             nil
           else
             nil
@@ -35,7 +35,7 @@ class Level
       @height.times do |y|
         @width.times do |x|
           tile = @tiles[x][y]
-          loc = MyObj::Loc.new(x * TILE_SIZE + 25, y * TILE_SIZE + 25)
+          loc = MyObj::Loc.new(x * TILE_SIZE, y * TILE_SIZE + TILE_SIZE/2)
           @tileset[tile].draw_rot(*camera.world_to_screen(loc).to_a, ZOrder::Terrain, 0.0) if tile
         end
       end
@@ -44,6 +44,10 @@ class Level
   end
 
   def solid?(x, y)
-    y < 0 || @tiles[x / TILE_SIZE][y / TILE_SIZE]
+    if y < 0 || @tiles[x / TILE_SIZE][y / TILE_SIZE]
+      return true
+    else
+      return false
+    end
   end
 end

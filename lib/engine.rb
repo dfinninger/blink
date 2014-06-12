@@ -54,7 +54,7 @@ class GameWindow < Gosu::Window
     # Player -----------------------------------------------------------------------------
     @player = Player.new(self)
     log self, "Player Loaded" if @config[:logging_enabled]
-    @player.warp(MyObj::Loc.new(@levelbox.right/2,levelbox.bot/2))
+    @player.warp(MyObj::Loc.new(500,500))
     log self, "Player Warped" if @config[:logging_enabled]
 
     # Game Font --------------------------------------------------------------------------

@@ -72,10 +72,10 @@ class Player
   def update(left_pressed, right_pressed, up_pressed)
     # check for key presses -----------------------------------------------------------
     if left_pressed then
-      @vel_x -= @off_ground ? @config[:speed]/10 : @config[:speed]
+      @vel_x -= on_floor? ? @config[:speed] : @config[:speed]/10
     end
     if right_pressed then
-      @vel_x += @off_ground ? @config[:speed]/10 : @config[:speed]
+      @vel_x += on_floor? ? @config[:speed] : @config[:speed]/10
     end
     if up_pressed then
       if (Gosu::milliseconds - @jump_millis) > 250 and not @up_still_pressed
@@ -94,16 +94,12 @@ class Player
     check_wall_collisions
 
     # apply friction and gravity to movement ------------------------------------------
-    @vel_x *= @off_ground ? 0.9 : 0.5
+    @vel_x *= on_floor? ? 0.5 : 0.9
     @vel_x = 0 if (@vel_x >= -0.1) and (@vel_x <= 0.1)
-    @vel_y = @off_ground ? @vel_y + @config[:gravity] : 0
+    @vel_y = on_floor? ? 0 : @vel_y + @config[:gravity]
+    @vel_y = 0 if on_floor?
 
-    # find out where the player's feet are --------------------------------------------
-    @foot = (@loc.y + FOOTROOM).to_i
-    @right = (@loc.x - SIDEROOM).to_i
-    @left = (@loc.x + SIDEROOM).to_i
-
-
+    puts "#{on_floor?} :: #{@vel_y}"
   end
 
   def draw(camera)
@@ -125,35 +121,52 @@ class Player
   private
 
   def move
-    @vel_x.floor.to_i.times{ @loc.x += would_fit? ? 1 : 0}
-    @loc.y += @vel_y
+    @vel_x.floor.to_i.abs.times { @loc.x += would_fit_x? ? (@vel_x <=> 0) : 0 }
+    @vel_y.floor.to_i.abs.times { @loc.y += would_fit_y? ? (@vel_y <=> 0) : 0 }
   end
 
   def move_noclip
-    @loc.x += @vel_x
-    @loc.y += @vel_y
+    @vel_x.floor.to_i.abs.times { @loc.x += (@vel_x <=> 0) }
+    @vel_y.floor.to_i.abs.times { @loc.y += (@vel_y <=> 0) }
   end
 
-  def would_fit?
-    not @level.solid?(*@loc.to_a) and
-        not @level.solid?(@loc.x, @loc.y-45)
+  def would_fit_x?
+    not @level.solid?(@loc.x-@image.width/2, @loc.y+@image.height/2-1) and
+        not @level.solid?(@loc.x-@image.width/2, @loc.y-@image.height/2+1) and
+        not @level.solid?(@loc.x+@image.width/2, @loc.y+@image.height/2-1) and
+        not @level.solid?(@loc.x+@image.width/2, @loc.y-@image.height/2+1)
+  end
+
+  def would_fit_y?
+    not @level.solid?(@loc.x-@image.width/2, @loc.y+@image.height/2) and
+        not @level.solid?(@loc.x-@image.width/2, @loc.y-@image.height/2) and
+        not @level.solid?(@loc.x+@image.width/2, @loc.y+@image.height/2) and
+        not @level.solid?(@loc.x+@image.width/2, @loc.y-@image.height/2)
+  end
+
+  def on_floor?
+    ((@loc.x-@image.width/2).to_i..(@loc.x+@image.width/2).to_i).each do |x|
+      if @level.solid?(x,@loc.y+@image.height/2) then return true end
+    end
   end
 
   def jump
-    if @off_ground
-      if @on_left_wall and not @already_walljumped
-        @vel_y -= @config[:jumpheight] * 0.666
-        @loc.x += 1
-        @vel_x += @config[:speed]
-        @already_walljumped = true
-      elsif @on_right_wall and not @already_walljumped
-        @vel_y -= @config[:jumpheight] * 0.666
-        @loc.x -= 1
-        @vel_x -= @config[:speed]
-        @already_walljumped = true
+    if on_floor?
+      if not on_floor?
+        if @on_left_wall and not @already_walljumped
+          @vel_y -= @config[:jumpheight] * 0.666
+          @loc.x += 1
+          @vel_x += @config[:speed]
+          @already_walljumped = true
+        elsif @on_right_wall and not @already_walljumped
+          @vel_y -= @config[:jumpheight] * 0.666
+          @loc.x -= 1
+          @vel_x -= @config[:speed]
+          @already_walljumped = true
+        end
+      else
+        @vel_y -= @config[:jumpheight]
       end
-    else
-      @vel_y -= @config[:jumpheight]
     end
   end
 
@@ -162,26 +175,25 @@ class Player
   end
 
   def check_wall_collisions
-    @off_ground = true if ((0 <=> @vel_y) == 1) and (!@off_ground)
-    if @loc.x >= @window.levelbox.right-SIDEROOM
-      @loc.x = @window.levelbox.right-SIDEROOM
+    if @loc.x >= @window.levelbox.right-@image.width/2
+      @loc.x = @window.levelbox.right-@image.width/2
       @vel_x = 0
       @on_right_wall = true
-    elsif @loc.x <= @window.levelbox.left+SIDEROOM
-      @loc.x = @window.levelbox.left+SIDEROOM
+    elsif @loc.x <= @window.levelbox.left+@image.width/2
+      @loc.x = @window.levelbox.left+@image.width/2
       @vel_x = 0
       @on_left_wall = true
     else
       @on_left_wall = false
       @on_right_wall = false
     end
-    if @loc.y >= @window.levelbox.bot-FOOTROOM
-      @loc.y = @window.levelbox.bot-FOOTROOM
+    if @loc.y >= @window.levelbox.bot-@image.height/2
+      @loc.y = @window.levelbox.bot-@image.height/2
       @vel_y = 0
       @off_ground = false
       @already_walljumped = false
-    elsif @loc.y <= @window.levelbox.top+HEADROOM
-      @loc.y = @window.levelbox.top+HEADROOM
+    elsif @loc.y <= @window.levelbox.top+@image.height/2
+      @loc.y = @window.levelbox.top+@image.height/2
       @vel_y = 0
     end
   end
