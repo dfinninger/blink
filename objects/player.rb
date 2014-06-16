@@ -117,7 +117,7 @@ class Player
     elsif on_right_wall? and not near_floor?
       @angle = -20.0
     else
-      @angle = @vel_x
+      @angle = @vel_x * 2
     end
   end
 
