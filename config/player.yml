@@ -7,4 +7,5 @@
 :blink_recharge_rate: 10
 :jumpheight: 15
 :noclip: false
+:noclip_speed: 10
 :max_run_speed: 10.0

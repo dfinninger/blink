@@ -14,6 +14,7 @@ class Level
     gem_image = @tileset[18]
     #gem_image = Gosu::Image.new(window, media_path("gems/Gem Green.png"), false)
     @gems = []
+    @background_tiles = []
 
     @config = YAML.load_file('config/level.yml')
     @start  = MyObj::Loc.new(window.width/2, window.height/2)
@@ -25,22 +26,26 @@ class Level
       Array.new(@height) do |y|
         case lines[y][x, 1]
           when '#'
-            { :tile => 7, :angle => 0.0 }
+            { :tile => 10, :angle => 0.0 }
           when '^'
             { :tile => 2, :angle => 0.0 }
           when '>'
             { :tile => 2, :angle => 90.0 }
           when '<'
             { :tile => 2, :angle => -90.0 }
+          when 'v'
+            { :tile => 2, :angle => 180.0 }
           when 'S'
-            @start = MyObj::Loc.new(x*TILE_SIZE,y*TILE_SIZE)
+            @start = MyObj::Loc.new(x * TILE_SIZE, y * TILE_SIZE)
             { :tile => 0, :angle => 0.0 }
           when 'G'
-            @goal = MyObj::Loc.new(x*TILE_SIZE,y*TILE_SIZE)
+            @goal = MyObj::Loc.new(x * TILE_SIZE, y * TILE_SIZE)
             { :tile => 1, :angle => 0.0 }
           when 'x'
             @gems.push(Collectibles::Gem.new(gem_image,  x * TILE_SIZE + 7, y * TILE_SIZE + TILE_SIZE/2))
             nil
+          when '&'
+            { :tile => 4, :angle => 0.0 }
           else
             nil
         end
@@ -51,8 +56,10 @@ class Level
       @height.times do |y|
         @width.times do |x|
           tile = @tiles[x][y]
+          #bg_tile = @background_tiles[x][y]
           loc = MyObj::Loc.new(x * TILE_SIZE + 7, y * TILE_SIZE + TILE_SIZE/2)
           @tileset[tile[:tile]].draw_rot(*camera.world_to_screen(loc).to_a, ZOrder::Terrain, tile[:angle]) if tile
+          #@tileset[bg_tile[:tile]].draw_rot(*camera.world_to_screen(loc).to_a, ZOrder::Terrain, bg_tile[:angle]) if bg_tile
         end
       end
       @gems.each { |c| c.draw(camera) }
@@ -61,7 +68,7 @@ class Level
 
   def solid?(x, y)
     return false unless @tiles[x / TILE_SIZE][y / TILE_SIZE]
-    [7,2].include?(@tiles[x / TILE_SIZE][y / TILE_SIZE][:tile])
+    [10,2].include?(@tiles[x / TILE_SIZE][y / TILE_SIZE][:tile])
   end
 
   def height
@@ -70,5 +77,13 @@ class Level
 
   def width
     @width * TILE_SIZE
+  end
+
+  def create_block(x, y)
+    @tiles[x / TILE_SIZE][y / TILE_SIZE] = { :tile => 10, :angle => 0.0 }
+  end
+
+  def delete_block(x, y)
+    @tiles[x / TILE_SIZE][y / TILE_SIZE] = nil
   end
 end

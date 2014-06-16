@@ -60,7 +60,7 @@ class GameWindow < Gosu::Window
     log self, "Player Warped" if @config[:logging_enabled]
 
     # cursor -----------------------------------------------------------------------------
-    @cursor = Cursor.new(self, media_path("cursors/windows_cursor.png"), true) if @config[:show_cursor]
+    @cursor = Cursor.new(self, media_path("cursors/windows_cursor.png"), true)
 
     # Game Font --------------------------------------------------------------------------
     @font = Gosu::Font.new(self, Gosu::default_font_name, 18)
@@ -78,7 +78,8 @@ class GameWindow < Gosu::Window
   def update
     @player.update((button_down? Gosu::KbLeft),
                    (button_down? Gosu::KbRight),
-                   (button_down? Gosu::KbUp))
+                   (button_down? Gosu::KbUp),
+                   (button_down? Gosu::KbDown))
     update_camera
     if @level.gems.length == 0 and not @level_complete and (@player.loc - @level.goal <= @goal_fudge_factor)
       @level_complete = true
@@ -100,9 +101,23 @@ class GameWindow < Gosu::Window
   end
 
   def button_down(id)
-    if id == Gosu::KbEscape
-      save
-      close
+    case id
+      when Gosu::KbEscape
+        save
+        close
+      when Gosu::KbE
+        if @config[:edit_mode]
+          @config[:edit_mode] = false
+          @config[:show_cursor] = false
+        else
+          @config[:edit_mode] = true
+          @config[:show_cursor] = true
+        end
+      when Gosu::MsLeft
+        @level.create_block(self.mouse_x+25, self.mouse_y) if @config[:edit_mode]
+      when Gosu::MsRight
+        @level.delete_block(self.mouse_x+25, self.mouse_y) if @config[:edit_mode]
+      else
     end
     @player.keypress_handler(id)
   end
@@ -119,6 +134,10 @@ class GameWindow < Gosu::Window
     @font.draw("Mouse - X: #{mouse_x} :: Y: #{mouse_y}", 10, 50, ZOrder::HUD)
     @font.draw("Player - X: #{@player.loc.x} :: Y: #{@player.loc.y}", 10, 70, ZOrder::HUD)
     @font.draw("<c=0000ff>NO_CLIP ENABLED!</c>", 10, 90, ZOrder::HUD) if @player.config[:noclip]
+  end
+
+  def draw_editmode
+    @font.draw("-- EDIT MODE --", self.width/2-10, 25, ZOrder::HUD)
   end
 
   def update_camera

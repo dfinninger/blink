@@ -70,13 +70,13 @@ class Player
     {:x => hitbox_x, :y => hitbox_y}
   end
 
-  def update(left_pressed, right_pressed, up_pressed)
+  def update(left_pressed, right_pressed, up_pressed, down_pressed)
     # check for key presses -----------------------------------------------------------
     if left_pressed then
-      @vel_x -= on_floor? ? @config[:speed] : @config[:speed]/10
+      @vel_x -= on_floor? ? @config[:speed] : @config[:speed]/5
     end
     if right_pressed then
-      @vel_x += on_floor? ? @config[:speed] : @config[:speed]/10
+      @vel_x += on_floor? ? @config[:speed] : @config[:speed]/5
     end
     if up_pressed then
       if (Gosu::milliseconds - @jump_millis) > 250 and not @up_still_pressed
@@ -89,7 +89,7 @@ class Player
     end
 
     # make the player actually move ---------------------------------------------------
-    @config[:noclip] ? move_noclip : move
+    @config[:noclip] ? move_noclip(left_pressed, right_pressed, up_pressed, down_pressed) : move
 
     # collect any goodies we may have passed over -------------------------------------
     collect_goodies(@level.gems)
@@ -117,7 +117,7 @@ class Player
     elsif on_right_wall? and not near_floor?
       @angle = -20.0
     else
-      @angle = 0.0
+      @angle = @vel_x
     end
   end
 
@@ -131,11 +131,11 @@ class Player
 
   def keypress_handler(id)
     case id
-      when Gosu::KbBacktick
+      when Gosu::KbQ
         @config[:noclip] = !@config[:noclip]
       when Gosu::KbR
         warp(MyObj::Loc.new(500,500))
-      when Gosu::KbQ
+      else
     end
   end
 
@@ -157,9 +157,12 @@ class Player
     end
   end
 
-  def move_noclip
-    @vel_x.to_i.abs.times { @loc.x += (@vel_x <=> 0) }
-    @vel_y.to_i.abs.times { @loc.y += (@vel_y <=> 0) }
+  def move_noclip(l, r, u, d)
+    @vel_x = @vel_y = 0
+    @loc.x -= @config[:noclip_speed] if l
+    @loc.x += @config[:noclip_speed] if r
+    @loc.y -= @config[:noclip_speed] if u
+    @loc.y += @config[:noclip_speed] if d
   end
 
   def would_fit?(x_offset, y_offset)
