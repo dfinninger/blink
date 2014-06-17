@@ -2,8 +2,9 @@
 :height: 1080
 :width: 1920
 :fullscreen: true
-:logging_enabled: false
 :levelbox_padding: 0
+
+:logging_enabled: false
 :show_cursor: false
 :debug: false
 :edit_mode: false

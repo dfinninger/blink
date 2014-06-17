@@ -34,7 +34,7 @@ class GameWindow < Gosu::Window
 
   attr_reader :levelbox, :level
   def initialize
-    @config = YAML.load_file('config/window.yml')
+    @config = YAML.load_file('config/engine.yml')
     super @config[:width], @config[:height], @config[:fullscreen]
     self.caption = "Blink"
 
@@ -91,6 +91,9 @@ class GameWindow < Gosu::Window
     if @level.gems.length == 0 and not @level_complete and (@player.loc - @level.goal <= @goal_fudge_factor)
       @level_complete = true
       @eol_millis = Gosu::milliseconds
+    elsif @level_complete
+      sleep 1
+      close
     end
   end
 
@@ -106,6 +109,7 @@ class GameWindow < Gosu::Window
       draw_debug if @config[:debug]
       draw_editmode if @config[:edit_mode]
       draw_block_selector if @config[:edit_mode]
+      draw_noclip if @player.config[:noclip]
     end
   end
 
@@ -138,7 +142,10 @@ class GameWindow < Gosu::Window
   def draw_debug
     @font.draw("Mouse - X: #{mouse_x} :: Y: #{mouse_y}", 10, 50, ZOrder::HUD)
     @font.draw("Player - X: #{@player.loc.x} :: Y: #{@player.loc.y}", 10, 70, ZOrder::HUD)
-    @font.draw("<c=0000ff>NO_CLIP ENABLED!</c>", 10, 90, ZOrder::HUD) if @player.config[:noclip]
+  end
+
+  def draw_noclip
+    @font.draw("<c=0000ff>NO_CLIP ENABLED!</c>", 10, 90, ZOrder::HUD)
   end
 
   def draw_editmode
