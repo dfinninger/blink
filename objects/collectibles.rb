@@ -10,7 +10,7 @@
 
      def draw(camera)
        # Draw, slowly rotating
-       @image.draw_rot(*camera.world_to_screen(loc).to_a, ZOrder::Terrain, 25 * Math.sin(Gosu::milliseconds / 133.7))
+       @image.draw_rot(*camera.world_to_screen(@loc).to_a, ZOrder::Terrain, 25 * Math.sin(Gosu::milliseconds / 133.7))
      end
    end
  end

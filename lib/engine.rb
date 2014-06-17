@@ -4,7 +4,7 @@
 #     Author:     Devon Finninger
 #     Init Date:  2014-06-04
 #
-# Note: This is the main file that should be run to play the game
+#
 
 require 'rubygems'
 #require 'bundler/setup'
@@ -66,6 +66,7 @@ class GameWindow < Gosu::Window
     # Game Font --------------------------------------------------------------------------
     @font = Gosu::Font.new(self, Gosu::default_font_name, 18)
     @large_font = Gosu::Font.new(self, Gosu::default_font_name, 100)
+    @edit_mode_txt = Gosu::Image.from_text(self, "-- EDIT MODE --", Gosu::default_font_name, 50)
 
     # Wall padding -----------------------------------------------------------------------
     @padding = @config[:levelbox_padding]
@@ -73,23 +74,19 @@ class GameWindow < Gosu::Window
     # State Variables --------------------------------------------------------------------
     @level_complete = false
     @eol_millis = 0
+    @edit_block_selected = Tiles::Stone
 
   end # -- end initialization --
 
   def update
-    @player.update((button_down? Gosu::KbLeft),
-                   (button_down? Gosu::KbRight),
-                   (button_down? Gosu::KbUp),
-                   (button_down? Gosu::KbDown))
-    update_camera
+    @player.update((button_down? Gosu::KbLeft or button_down? Gosu::KbA),
+                   (button_down? Gosu::KbRight or button_down? Gosu::KbD),
+                   (button_down? Gosu::KbUp or button_down? Gosu::KbW),
+                   (button_down? Gosu::KbDown or button_down? Gosu::KbS))
 
-    if @config[:edit_mode]
-      if button_down? Gosu::MsLeft
-        @level.create_block(@camera, MyObj::Loc.new(self.mouse_x+25, self.mouse_y)) if @config[:edit_mode]
-      elsif button_down? Gosu::MsRight
-        @level.delete_block(@camera, MyObj::Loc.new(self.mouse_x+25, self.mouse_y)) if @config[:edit_mode]
-      end
-    end
+    update_camera
+    block_painter if @config[:edit_mode]
+    update_block_selector if @config[:edit_mode]
 
     if @level.gems.length == 0 and not @level_complete and (@player.loc - @level.goal <= @goal_fudge_factor)
       @level_complete = true
@@ -107,6 +104,8 @@ class GameWindow < Gosu::Window
       @cursor.draw if @config[:show_cursor]
       draw_hud
       draw_debug if @config[:debug]
+      draw_editmode if @config[:edit_mode]
+      draw_block_selector if @config[:edit_mode]
     end
   end
 
@@ -143,7 +142,29 @@ class GameWindow < Gosu::Window
   end
 
   def draw_editmode
-    @font.draw("-- EDIT MODE --", self.width/2-10, 25, ZOrder::HUD)
+    @edit_mode_txt.draw(self.width/2-@edit_mode_txt.width/2, 40, ZOrder::HUD)
+  end
+
+  def draw_block_selector
+    @font.draw("Current Block:", self.width - 175, 70, ZOrder::HUD)
+    @edit_block_selected == Tiles::Stone ? @font.draw("<c=00ff00>1: Stone</c>", self.width - 150, 90, ZOrder::HUD) : @font.draw("1: Stone", self.width - 150, 90, ZOrder::HUD)
+    @edit_block_selected == Tiles::Gem   ? @font.draw("<c=00ff00>2: Gem</c>", self.width - 150, 110, ZOrder::HUD)   : @font.draw("2: Gem", self.width - 150, 110, ZOrder::HUD)
+  end
+
+  def update_block_selector
+    if button_down? Gosu::Kb1 or button_down? Gosu::KbNumpad1
+      @edit_block_selected = Tiles::Stone
+    elsif button_down? Gosu::Kb2 or button_down? Gosu::KbNumpad2
+      @edit_block_selected = Tiles::Gem
+    end
+  end
+
+  def block_painter
+    if button_down? Gosu::MsLeft
+      @level.create_block(@camera, MyObj::Loc.new(self.mouse_x+25, self.mouse_y), @edit_block_selected) if @config[:edit_mode]
+    elsif button_down? Gosu::MsRight
+      @level.delete_block(@camera, MyObj::Loc.new(self.mouse_x+25, self.mouse_y)) if @config[:edit_mode]
+    end
   end
 
   def update_camera

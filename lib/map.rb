@@ -12,7 +12,7 @@ class Map
   def initialize(window)
     @tileset = Gosu::Image.load_tiles(window, media_path("tilesets/plat_tiles.png"), TILE_SIZE, TILE_SIZE, true)
 
-    gem_image = @tileset[Tiles::Gem]
+    @gem_image = @tileset[Tiles::Gem]
     @gems = []
     @background_tiles = []
 
@@ -24,7 +24,7 @@ class Map
       @tiles[tile[:x]][tile[:y]] = tile
     end
 
-    @map[:gems].each { |gem| @gems.push(Collectibles::Gem.new(gem_image,  gem[:x] * TILE_SIZE + 7, gem[:y] * TILE_SIZE + TILE_SIZE/2)) }
+    @map[:gems].each { |gem| @gems.push(Collectibles::Gem.new(@gem_image,  gem[:x] * TILE_SIZE + 7, gem[:y] * TILE_SIZE + TILE_SIZE/2)) }
   end
 
   def draw(camera)
@@ -51,9 +51,13 @@ class Map
     @map[:width] * TILE_SIZE
   end
 
-  def create_block(camera, loc)
+  def create_block(camera, loc, block)
     x, y = *camera.screen_to_world(loc).to_a
-    @tiles[x / TILE_SIZE][y / TILE_SIZE] = { :x => x.to_i / TILE_SIZE, :y => y.to_i / TILE_SIZE, :tile => 10, :angle => 0.0 }
+    if block == Tiles::Gem
+      @gems.push(Collectibles::Gem.new(@gem_image, loc.x * TILE_SIZE + 7, loc.y * TILE_SIZE + TILE_SIZE/2))
+    else
+      @tiles[x / TILE_SIZE][y / TILE_SIZE] = { :x => x.to_i / TILE_SIZE, :y => y.to_i / TILE_SIZE, :tile => block, :angle => 0.0 }
+    end
   end
 
   def delete_block(camera, loc)
