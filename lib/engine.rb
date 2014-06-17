@@ -11,7 +11,7 @@ require 'rubygems'
 require 'gosu'
 require 'yaml'
 
-require_relative 'zorder_enums'
+require_relative 'enums'
 require_relative 'blinkutils'
 require_relative 'myobj'
 require_relative 'camera'
@@ -114,9 +114,9 @@ class GameWindow < Gosu::Window
           @config[:show_cursor] = true
         end
       when Gosu::MsLeft
-        @level.create_block(self.mouse_x+25, self.mouse_y) if @config[:edit_mode]
+        @level.create_block(@camera, MyObj::Loc.new(self.mouse_x+25, self.mouse_y)) if @config[:edit_mode]
       when Gosu::MsRight
-        @level.delete_block(self.mouse_x+25, self.mouse_y) if @config[:edit_mode]
+        @level.delete_block(@camera, MyObj::Loc.new(self.mouse_x+25, self.mouse_y)) if @config[:edit_mode]
       else
     end
     @player.keypress_handler(id)

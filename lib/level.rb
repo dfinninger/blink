@@ -26,21 +26,21 @@ class Level
       Array.new(@height) do |y|
         case lines[y][x, 1]
           when '#'
-            { :tile => 10, :angle => 0.0 }
+            { :tile => Tiles::Stone, :angle => 0.0 }
           when '^'
-            { :tile => 2, :angle => 0.0 }
+            { :tile => Tiles::Spike, :angle => 0.0 }
           when '>'
-            { :tile => 2, :angle => 90.0 }
+            { :tile => Tiles::Spike, :angle => 90.0 }
           when '<'
-            { :tile => 2, :angle => -90.0 }
+            { :tile => Tiles::Spike, :angle => -90.0 }
           when 'v'
-            { :tile => 2, :angle => 180.0 }
+            { :tile => Tiles::Spike, :angle => 180.0 }
           when 'S'
             @start = MyObj::Loc.new(x * TILE_SIZE, y * TILE_SIZE)
-            { :tile => 0, :angle => 0.0 }
+            { :tile => Tiles::Start, :angle => 0.0 }
           when 'G'
             @goal = MyObj::Loc.new(x * TILE_SIZE, y * TILE_SIZE)
-            { :tile => 1, :angle => 0.0 }
+            { :tile => Tiles::Goal, :angle => 0.0 }
           when 'x'
             @gems.push(Collectibles::Gem.new(gem_image,  x * TILE_SIZE + 7, y * TILE_SIZE + TILE_SIZE/2))
             nil
@@ -68,7 +68,7 @@ class Level
 
   def solid?(x, y)
     return false unless @tiles[x / TILE_SIZE][y / TILE_SIZE]
-    [10,2].include?(@tiles[x / TILE_SIZE][y / TILE_SIZE][:tile])
+    [Tiles::Stone,Tiles::Spike].include?(@tiles[x / TILE_SIZE][y / TILE_SIZE][:tile])
   end
 
   def height
@@ -79,11 +79,13 @@ class Level
     @width * TILE_SIZE
   end
 
-  def create_block(x, y)
+  def create_block(camera, loc)
+    x, y = *camera.screen_to_world(loc).to_a
     @tiles[x / TILE_SIZE][y / TILE_SIZE] = { :tile => 10, :angle => 0.0 }
   end
 
-  def delete_block(x, y)
+  def delete_block(camera, loc)
+    x, y = *camera.screen_to_world(loc).to_a
     @tiles[x / TILE_SIZE][y / TILE_SIZE] = nil
   end
 end
