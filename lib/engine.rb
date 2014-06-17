@@ -67,6 +67,7 @@ class GameWindow < Gosu::Window
     @font = Gosu::Font.new(self, Gosu::default_font_name, 18)
     @large_font = Gosu::Font.new(self, Gosu::default_font_name, 100)
     @edit_mode_txt = Gosu::Image.from_text(self, "-- EDIT MODE --", Gosu::default_font_name, 50)
+    @death_text = Gosu::Image.from_text(self, "DEAD", media_path("fonts/note_this.ttf"), 150)
 
     # Wall padding -----------------------------------------------------------------------
     @padding = @config[:levelbox_padding]
@@ -96,11 +97,21 @@ class GameWindow < Gosu::Window
       sleep 1
       close
     end
+
+    on_player_death if @player.dead
   end
 
   def draw
     if @level_complete and (Gosu::milliseconds - @eol_millis) > 250
       @font.draw("Level Complete!", self.width/2-60, self.height/2, ZOrder::HUD)
+    elsif @player.dead
+      self.draw_quad(0, 0, Gosu::Color::RED,
+                     self.width, 0, Gosu::Color::RED,
+                     0, self.height, Gosu::Color::BLACK,
+                     self.width, self.height, Gosu::Color::BLACK,
+                     ZOrder::HUD)
+      @death_text.draw(self.width/2 - @death_text.width/2, self.height/4, ZOrder::HUD)
+      return
     else
       @player.draw(@camera)
       @background.draw(@camera)
@@ -201,6 +212,10 @@ class GameWindow < Gosu::Window
   def save
     @player.save
     @level.save
+  end
+
+  def on_player_death
+
   end
 
 end

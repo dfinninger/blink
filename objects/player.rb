@@ -22,7 +22,7 @@ class Player
 
   attr_accessor :loc, :health, :base_health, :recently_hit, :on_left_wall,
                 :on_right_wall, :off_ground, :config, :gems_collected
-  attr_reader :foot, :left, :right, :blink_charge, :blink_prep
+  attr_reader :foot, :left, :right, :blink_charge, :blink_prep, :dead
 
   def initialize(window)
     # load config ---------------------------------------------------------------------
@@ -60,6 +60,7 @@ class Player
     @blink_prep = false
     @blink_recharging = false
     @current_blink_length = 0
+    @dead = false
   end
 
   def warp(loc)
@@ -73,19 +74,15 @@ class Player
   end
 
   def update(left_pressed, right_pressed, up_pressed, down_pressed, blink_button_pressed)
-    # check for key presses -----------------------------------------------------------
     adjust_velocity(left_pressed, right_pressed, up_pressed, down_pressed)
 
-    # make the player actually move ---------------------------------------------------
     @config[:noclip] ? move_noclip(left_pressed, right_pressed, up_pressed, down_pressed) : move
 
-    # collect any goodies we may have passed over -------------------------------------
     collect_goodies(@level.gems)
 
-    # check if player is on a wall ----------------------------------------------------
     check_wall_collisions
+    @health -= 1 if inside_wall?
 
-    # update the blink ----------------------------------------------------------------
     update_blink(blink_button_pressed)
 
     # apply friction and gravity to movement ------------------------------------------
@@ -110,6 +107,8 @@ class Player
     else
       @angle = @vel_x * 2
     end
+
+    check_health
   end
 
   def draw(camera)
@@ -127,6 +126,8 @@ class Player
         @config[:noclip] = !@config[:noclip]
       when Gosu::KbR
         warp(MyObj::Loc.new(500,500))
+      when Gosu::KbF
+        @blink_charge = 100
       else
     end
   end
@@ -185,9 +186,9 @@ class Player
 
   def draw_blink(camera)
       temp = @loc.x + (@current_blink_length * (@vel_x <=> 0))
-      @window.draw_triangle(*camera.world_to_screen(MyObj::Loc.new(@loc.x, @loc.y-@image.height/4)).to_a, Gosu::Color::CYAN,
-                            *camera.world_to_screen(MyObj::Loc.new(@loc.x, @loc.y+@image.height/4)).to_a, Gosu::Color::CYAN,
-                            *camera.world_to_screen(MyObj::Loc.new(temp, @loc.y)).to_a, Gosu::Color::CYAN,
+      @window.draw_triangle(*camera.world_to_screen(MyObj::Loc.new(@loc.x, @loc.y-@image.height/4)).to_a, Gosu::Color.argb(0xFF0000FF),
+                            *camera.world_to_screen(MyObj::Loc.new(@loc.x, @loc.y+@image.height/4)).to_a, Gosu::Color.argb(0xFF0000FF),
+                            *camera.world_to_screen(MyObj::Loc.new(temp, @loc.y-@image.height/4)).to_a, Gosu::Color.argb(0xFFFF0000),
                             ZOrder::PlayerEffects)
   end
 
@@ -271,6 +272,12 @@ class Player
     false
   end
 
+  def inside_wall?
+    not would_fit_up? and
+        not would_fit_left? and
+        not would_fit_right?
+  end
+
   def jump
     if on_floor?
       @vel_y -= @config[:jumpheight]
@@ -291,6 +298,13 @@ class Player
 
   def update_stats(item, value)
     @config[item] = value
+  end
+
+  def check_health
+    if @health < 0
+      @health = 0
+      @dead = true
+    end
   end
 
   def check_wall_collisions
