@@ -1,7 +1,7 @@
 #this just defines how deep things 
 # are placed in the background
 module ZOrder
-  Background, Terrain, NPC, Player, HUD, Cursor = *0..5
+  Background, Terrain, NPC, PlayerEffects, Player, HUD, Cursor = *0..6
 end
 
 module Tiles

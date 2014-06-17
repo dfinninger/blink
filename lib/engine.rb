@@ -82,7 +82,8 @@ class GameWindow < Gosu::Window
     @player.update((button_down? Gosu::KbLeft or button_down? Gosu::KbA),
                    (button_down? Gosu::KbRight or button_down? Gosu::KbD),
                    (button_down? Gosu::KbUp or button_down? Gosu::KbW),
-                   (button_down? Gosu::KbDown or button_down? Gosu::KbS))
+                   (button_down? Gosu::KbDown or button_down? Gosu::KbS),
+                   (button_down? Gosu::KbSpace))
 
     update_camera
     block_painter if @config[:edit_mode]

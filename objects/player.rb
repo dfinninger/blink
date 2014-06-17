@@ -21,9 +21,8 @@ class Player
   MAX_FALL_SPEED = 50
 
   attr_accessor :loc, :health, :base_health, :recently_hit, :on_left_wall,
-                :on_right_wall, :off_ground, :blink_charge, :config,
-                :gems_collected
-  attr_reader :foot, :left, :right
+                :on_right_wall, :off_ground, :config, :gems_collected
+  attr_reader :foot, :left, :right, :blink_charge, :blink_prep
 
   def initialize(window)
     # load config ---------------------------------------------------------------------
@@ -58,6 +57,9 @@ class Player
     @on_right_wall = false
     @already_walljumped = false
     @gems_collected = 0
+    @blink_prep = false
+    @blink_recharging = false
+    @current_blink_length = 0
   end
 
   def warp(loc)
@@ -70,23 +72,9 @@ class Player
     {:x => hitbox_x, :y => hitbox_y}
   end
 
-  def update(left_pressed, right_pressed, up_pressed, down_pressed)
+  def update(left_pressed, right_pressed, up_pressed, down_pressed, blink_button_pressed)
     # check for key presses -----------------------------------------------------------
-    if left_pressed then
-      @vel_x -= on_floor? ? @config[:speed] : @config[:speed]/5
-    end
-    if right_pressed then
-      @vel_x += on_floor? ? @config[:speed] : @config[:speed]/5
-    end
-    if up_pressed then
-      if (Gosu::milliseconds - @jump_millis) > 250 and not @up_still_pressed
-        jump
-        @jump_millis = Gosu::milliseconds
-      end
-      @up_still_pressed = true
-    else
-      @up_still_pressed = false
-    end
+    adjust_velocity(left_pressed, right_pressed, up_pressed, down_pressed)
 
     # make the player actually move ---------------------------------------------------
     @config[:noclip] ? move_noclip(left_pressed, right_pressed, up_pressed, down_pressed) : move
@@ -96,6 +84,9 @@ class Player
 
     # check if player is on a wall ----------------------------------------------------
     check_wall_collisions
+
+    # update the blink ----------------------------------------------------------------
+    update_blink(blink_button_pressed)
 
     # apply friction and gravity to movement ------------------------------------------
     @vel_x = @config[:max_run_speed] if @vel_x > @config[:max_run_speed]
@@ -111,7 +102,7 @@ class Player
     # walljump ------------------------------------------------------------------------
     @already_walljumped = false unless on_left_wall? or on_right_wall?
 
-    #adjust player angle --------------------------------------------------------------
+    # adjust player angle -------------------------------------------------------------
     if on_left_wall? and not near_floor?
       @angle = 20.0
     elsif on_right_wall? and not near_floor?
@@ -123,6 +114,7 @@ class Player
 
   def draw(camera)
     @image.draw_rot(*camera.world_to_screen(@loc).to_a, ZOrder::Player, @angle)
+    draw_blink(camera) if @blink_prep
   end
 
   def save
@@ -163,6 +155,62 @@ class Player
     @loc.x += @config[:noclip_speed] if r
     @loc.y -= @config[:noclip_speed] if u
     @loc.y += @config[:noclip_speed] if d
+  end
+
+  def update_blink(blink_button_pressed) # This is where we get the name from!! ------------------------------------
+    if blink_button_pressed and (@blink_charge.to_i == 100)
+      @blink_prep = true
+      if @current_blink_length <= @config[:blink_distance]
+        @current_blink_length += @config[:blink_distance] / 10
+      elsif @current_blink_length >= @config[:blink_distance]
+        @current_blink_length = @config[:blink_distance]
+      end
+    elsif @blink_prep and not blink_button_pressed
+      @blink_prep = false
+      blink
+      @blink_recharging = true
+      @current_blink_length = 0
+      @blink_charge = 0
+    end
+
+    if @blink_recharging
+      if @blink_charge < MAX_PERCENT
+        @blink_charge += @config[:blink_recharge_rate]
+      else
+        @blink_charge = MAX_PERCENT
+        @blink_recharging = false
+      end
+    end
+  end
+
+  def draw_blink(camera)
+      temp = @loc.x + (@current_blink_length * (@vel_x <=> 0))
+      @window.draw_triangle(*camera.world_to_screen(MyObj::Loc.new(@loc.x, @loc.y-@image.height/4)).to_a, Gosu::Color::CYAN,
+                            *camera.world_to_screen(MyObj::Loc.new(@loc.x, @loc.y+@image.height/4)).to_a, Gosu::Color::CYAN,
+                            *camera.world_to_screen(MyObj::Loc.new(temp, @loc.y)).to_a, Gosu::Color::CYAN,
+                            ZOrder::PlayerEffects)
+  end
+
+  def blink
+    @loc.x += (@current_blink_length * (@vel_x <=> 0))
+  end
+
+  def adjust_velocity(left_pressed, right_pressed, up_pressed, down_pressed)
+    if left_pressed then
+      @vel_x -= on_floor? ? @config[:speed] : @config[:speed]/5
+    end
+    if right_pressed then
+      @vel_x += on_floor? ? @config[:speed] : @config[:speed]/5
+    end
+    if up_pressed then
+      if (Gosu::milliseconds - @jump_millis) > 250 and not @up_still_pressed
+        jump
+        @jump_millis = Gosu::milliseconds
+      end
+      @up_still_pressed = true
+    else
+      @up_still_pressed = false
+    end
   end
 
   def would_fit?(x_offset, y_offset)
