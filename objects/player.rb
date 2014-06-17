@@ -81,7 +81,7 @@ class Player
     collect_goodies(@level.gems)
 
     check_wall_collisions
-    @health -= 1 if inside_wall?
+    @health -= 2 if inside_wall?
 
     update_blink(blink_button_pressed)
 

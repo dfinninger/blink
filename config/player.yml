@@ -5,7 +5,7 @@
 :speed: 3.0
 :gravity: 0.6
 :blink_recharge_rate: 0.1
-:blink_distance: 250
+:blink_distance: 500
 :jumpheight: 15
 :noclip: false
 :noclip_speed: 10

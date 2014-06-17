@@ -67,7 +67,24 @@ class GameWindow < Gosu::Window
     @font = Gosu::Font.new(self, Gosu::default_font_name, 18)
     @large_font = Gosu::Font.new(self, Gosu::default_font_name, 100)
     @edit_mode_txt = Gosu::Image.from_text(self, "-- EDIT MODE --", Gosu::default_font_name, 50)
-    @death_text = Gosu::Image.from_text(self, "DEAD", media_path("fonts/note_this.ttf"), 150)
+    @death_text_strings = ["You're dead, good job",
+                           "Geez, you suck",
+                           "You done goofed",
+                           "I can't believe what you just did",
+                           "Welp, that was embarrassing",
+                           "Why? For the love of god, why??",
+                           "You know you have a free blink, right?",
+                           "Good for you this isn't real life",
+                           "You must suck",
+                           "You're probably not supposed to do that...",
+                           "Better luck next time?",
+                           "How? You don't take fall damage",
+                           "I didn't make this game just for you to die",
+                           "Try again",
+                           "I guess you felt too lucky, punk",
+                           "Go and die another day",
+                           "100 ways to die... and you pick the lamest one",]
+    @death_text = Gosu::Image.from_text(self, @death_text_strings[Gosu::random(0, @death_text_strings.length-1)], media_path("fonts/note_this.ttf"), 150)
 
     # Wall padding -----------------------------------------------------------------------
     @padding = @config[:levelbox_padding]
@@ -215,7 +232,7 @@ class GameWindow < Gosu::Window
   end
 
   def on_player_death
-
+    nil
   end
 
 end
