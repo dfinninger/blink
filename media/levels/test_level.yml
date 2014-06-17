@@ -24,7 +24,39 @@
   :y: 3
   :tile: 10
   :angle: 0.0
+- :x: 11
+  :y: 3
+  :tile: 10
+  :angle: 0.0
+- :x: 12
+  :y: 3
+  :tile: 10
+  :angle: 0.0
+- :x: 13
+  :y: 3
+  :tile: 10
+  :angle: 0.0
+- :x: 14
+  :y: 3
+  :tile: 10
+  :angle: 0.0
+- :x: 15
+  :y: 3
+  :tile: 10
+  :angle: 0.0
+- :x: 16
+  :y: 3
+  :tile: 10
+  :angle: 0.0
+- :x: 17
+  :y: 3
+  :tile: 10
+  :angle: 0.0
 - :x: 0
+  :y: 4
+  :tile: 10
+  :angle: 0.0
+- :x: 16
   :y: 4
   :tile: 10
   :angle: 0.0
@@ -32,35 +64,23 @@
   :y: 5
   :tile: 10
   :angle: 0.0
-- :x: 1
-  :y: 5
-  :tile: 10
-  :angle: 0.0
-- :x: 2
-  :y: 5
-  :tile: 10
-  :angle: 0.0
-- :x: 3
-  :y: 5
-  :tile: 10
-  :angle: 0.0
-- :x: 4
-  :y: 5
-  :tile: 10
-  :angle: 0.0
-- :x: 5
-  :y: 5
-  :tile: 10
-  :angle: 0.0
-- :x: 6
-  :y: 5
-  :tile: 10
-  :angle: 0.0
-- :x: 7
-  :y: 5
-  :tile: 10
-  :angle: 0.0
 - :x: 8
+  :y: 5
+  :tile: 10
+  :angle: 0.0
+- :x: 11
+  :y: 5
+  :tile: 10
+  :angle: 0.0
+- :x: 12
+  :y: 5
+  :tile: 10
+  :angle: 0.0
+- :x: 15
+  :y: 5
+  :tile: 10
+  :angle: 0.0
+- :x: 16
   :y: 5
   :tile: 10
   :angle: 0.0
@@ -88,52 +108,164 @@
   :y: 6
   :tile: 10
   :angle: 0.0
-- :x: 6
+- :x: 12
   :y: 6
   :tile: 10
   :angle: 0.0
-- :x: 7
+- :x: 13
   :y: 6
   :tile: 10
   :angle: 0.0
-- :x: 8
+- :x: 14
   :y: 6
   :tile: 10
   :angle: 0.0
-- :x: 0
-  :y: 7
+- :x: 19
+  :y: 8
   :tile: 10
   :angle: 0.0
-- :x: 1
-  :y: 7
+- :x: 20
+  :y: 8
+  :tile: 10
+  :angle: 0.0
+- :x: 23
+  :y: 8
+  :tile: 10
+  :angle: 0.0
+- :x: 26
+  :y: 8
+  :tile: 10
+  :angle: 0.0
+- :x: 28
+  :y: 8
+  :tile: 10
+  :angle: 0.0
+- :x: 29
+  :y: 8
   :tile: 10
   :angle: 0.0
 - :x: 2
-  :y: 7
+  :y: 9
   :tile: 10
   :angle: 0.0
 - :x: 3
-  :y: 7
+  :y: 9
   :tile: 10
   :angle: 0.0
 - :x: 4
-  :y: 7
+  :y: 9
   :tile: 10
   :angle: 0.0
 - :x: 5
-  :y: 7
+  :y: 9
   :tile: 10
   :angle: 0.0
 - :x: 6
-  :y: 7
+  :y: 9
   :tile: 10
   :angle: 0.0
 - :x: 7
-  :y: 7
+  :y: 9
   :tile: 10
   :angle: 0.0
 - :x: 8
-  :y: 7
+  :y: 9
+  :tile: 10
+  :angle: 0.0
+- :x: 9
+  :y: 9
+  :tile: 10
+  :angle: 0.0
+- :x: 10
+  :y: 9
+  :tile: 10
+  :angle: 0.0
+- :x: 11
+  :y: 9
+  :tile: 10
+  :angle: 0.0
+- :x: 12
+  :y: 9
+  :tile: 10
+  :angle: 0.0
+- :x: 13
+  :y: 9
+  :tile: 10
+  :angle: 0.0
+- :x: 14
+  :y: 9
+  :tile: 10
+  :angle: 0.0
+- :x: 15
+  :y: 9
+  :tile: 10
+  :angle: 0.0
+- :x: 16
+  :y: 9
+  :tile: 10
+  :angle: 0.0
+- :x: 17
+  :y: 9
+  :tile: 10
+  :angle: 0.0
+- :x: 2
+  :y: 10
+  :tile: 10
+  :angle: 0.0
+- :x: 2
+  :y: 11
+  :tile: 10
+  :angle: 0.0
+- :x: 3
+  :y: 11
+  :tile: 10
+  :angle: 0.0
+- :x: 3
+  :y: 12
+  :tile: 10
+  :angle: 0.0
+- :x: 4
+  :y: 12
+  :tile: 10
+  :angle: 0.0
+- :x: 5
+  :y: 12
+  :tile: 10
+  :angle: 0.0
+- :x: 6
+  :y: 12
+  :tile: 10
+  :angle: 0.0
+- :x: 7
+  :y: 12
+  :tile: 10
+  :angle: 0.0
+- :x: 8
+  :y: 12
+  :tile: 10
+  :angle: 0.0
+- :x: 9
+  :y: 12
+  :tile: 10
+  :angle: 0.0
+- :x: 10
+  :y: 12
+  :tile: 10
+  :angle: 0.0
+- :x: 11
+  :y: 12
+  :tile: 10
+  :angle: 0.0
+- :x: 12
+  :y: 12
+  :tile: 10
+  :angle: 0.0
+- :x: 13
+  :y: 12
+  :tile: 10
+  :angle: 0.0
+- :x: 14
+  :y: 12
   :tile: 10
   :angle: 0.0
 :gems:

@@ -82,6 +82,15 @@ class GameWindow < Gosu::Window
                    (button_down? Gosu::KbUp),
                    (button_down? Gosu::KbDown))
     update_camera
+
+    if @config[:edit_mode]
+      if button_down? Gosu::MsLeft
+        @level.create_block(@camera, MyObj::Loc.new(self.mouse_x+25, self.mouse_y)) if @config[:edit_mode]
+      elsif button_down? Gosu::MsRight
+        @level.delete_block(@camera, MyObj::Loc.new(self.mouse_x+25, self.mouse_y)) if @config[:edit_mode]
+      end
+    end
+
     if @level.gems.length == 0 and not @level_complete and (@player.loc - @level.goal <= @goal_fudge_factor)
       @level_complete = true
       @eol_millis = Gosu::milliseconds
@@ -114,10 +123,6 @@ class GameWindow < Gosu::Window
           @config[:edit_mode] = true
           @config[:show_cursor] = true
         end
-      when Gosu::MsLeft
-        @level.create_block(@camera, MyObj::Loc.new(self.mouse_x+25, self.mouse_y)) if @config[:edit_mode]
-      when Gosu::MsRight
-        @level.delete_block(@camera, MyObj::Loc.new(self.mouse_x+25, self.mouse_y)) if @config[:edit_mode]
       else
     end
     @player.keypress_handler(id)
