@@ -16,6 +16,7 @@ require_relative 'blinkutils'
 require_relative 'myobj'
 require_relative 'camera'
 require_relative 'level'
+require_relative 'map'
 
 require_relative '../objects/enemy'
 require_relative '../objects/player'
@@ -42,7 +43,7 @@ class GameWindow < Gosu::Window
     log self, "Camera loaded" if @config[:logging_enabled]
 
     # init level -------------------------------------------------------------------------
-    @level = Level.new(self, media_path("levels/CptnRuby Map.txt"))
+    @level = Map.new(self)
     @goal_fudge_factor = MyObj::Loc.new(65,65)
 
     # Walls, ceiling and floor -----------------------------------------------------------
@@ -165,6 +166,7 @@ class GameWindow < Gosu::Window
 
   def save
     @player.save
+    @level.save
   end
 
 end
