@@ -67,7 +67,8 @@ class GameWindow < Gosu::Window
     @font = Gosu::Font.new(self, Gosu::default_font_name, 18)
     @large_font = Gosu::Font.new(self, Gosu::default_font_name, 100)
     @edit_mode_txt = Gosu::Image.from_text(self, "-- EDIT MODE --", Gosu::default_font_name, 50)
-    @death_text_strings = ["You're dead, good job",
+    @death_text_strings = [
+                           "You're dead, good job",
                            "Geez, you suck",
                            "You done goofed",
                            "I can't believe what you just did",
