@@ -262,10 +262,10 @@ class GameWindow < Gosu::Window
       @camera.x = @player.loc.x - self.width/2
       @camera.y = @player.loc.y - self.height/2 - 50
 
-      @camera.x = @levelbox.left-@padding if @camera.x <= @levelbox.left-@padding
-      @camera.x = @levelbox.right-self.width+@padding if @camera.x >= @levelbox.right-self.width+@padding
-      @camera.y = @levelbox.top-@padding if @camera.y <= @levelbox.top-@padding
-      @camera.y = @levelbox.bot-self.height+@padding if @camera.y >= @levelbox.bot-self.height+@padding
+      @camera.x = @padding if @camera.x <= @padding
+      @camera.x = @level.width-self.width+@padding if @camera.x >= @level.width-self.width+@padding
+      @camera.y = @padding if @camera.y <= @padding
+      @camera.y = @level.height-self.height+@padding if @camera.y >= @level.height-self.height+@padding
     end
     log self, "Camera loc - x: #{@camera.x}, y: #{@camera.y}" if @config[:logging_enabled]
   end
