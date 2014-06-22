@@ -43,6 +43,12 @@ class Map
     [Tiles::Stone,Tiles::Spike].include?(@tiles[x / TILE_SIZE][y / TILE_SIZE][:tile])
   end
 
+  def tile_instant_death?(x, y)
+    if @tiles[x / TILE_SIZE][y / TILE_SIZE]
+      [Tiles::Spike].include?(@tiles[x / TILE_SIZE][y / TILE_SIZE][:tile])
+    end
+  end
+
   def height
     @map[:height] * TILE_SIZE
   end
@@ -51,12 +57,20 @@ class Map
     @map[:width] * TILE_SIZE
   end
 
-  def create_block(camera, loc, block)
+  def create_block(camera, loc, block, angle = 0.0)
     x, y = *camera.screen_to_world(loc).to_a
     if block == Tiles::Gem
       @gems.push(Collectibles::Gem.new(@gem_image, loc.x * TILE_SIZE + 7, loc.y * TILE_SIZE + TILE_SIZE/2))
     else
-      @tiles[x / TILE_SIZE][y / TILE_SIZE] = { :x => x.to_i / TILE_SIZE, :y => y.to_i / TILE_SIZE, :tile => block, :angle => 0.0 }
+      @tiles[x / TILE_SIZE][y / TILE_SIZE] = { :x => x.to_i / TILE_SIZE, :y => y.to_i / TILE_SIZE, :tile => block, :angle => angle }
+    end
+
+    if block == Tiles::Start
+      @map[:start][:x] = x / TILE_SIZE
+      @map[:start][:y] = y / TILE_SIZE
+    elsif block == Tiles::Goal
+      @map[:goal][:x] = x / TILE_SIZE
+      @map[:goal][:y] = y / TILE_SIZE
     end
   end
 

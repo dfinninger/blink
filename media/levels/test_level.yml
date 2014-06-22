@@ -2,8 +2,8 @@
 :width: 50
 :height: 50
 :start:
-  :x: 4
-  :y: 4
+  :x: 1.4625
+  :y: 7.4
 :goal:
   :x: 49
   :y: 49
@@ -152,6 +152,10 @@
   :y: 5
   :tile: 10
   :angle: 0.0
+- :x: 26
+  :y: 5
+  :tile: 1
+  :angle: 0.0
 - :x: 0
   :y: 6
   :tile: 10
@@ -227,6 +231,10 @@
 - :x: 0
   :y: 7
   :tile: 10
+  :angle: 0.0
+- :x: 1
+  :y: 7
+  :tile: 0
   :angle: 0.0
 - :x: 17
   :y: 7
@@ -484,6 +492,10 @@
   :y: 9
   :tile: 10
   :angle: 0.0
+- :x: 32
+  :y: 9
+  :tile: 10
+  :angle: 0.0
 - :x: 0
   :y: 10
   :tile: 10
@@ -581,10 +593,6 @@
   :tile: 10
   :angle: 0.0
 - :x: 24
-  :y: 10
-  :tile: 10
-  :angle: 0.0
-- :x: 28
   :y: 10
   :tile: 10
   :angle: 0.0
@@ -693,10 +701,6 @@
   :tile: 10
   :angle: 0.0
 - :x: 24
-  :y: 11
-  :tile: 10
-  :angle: 0.0
-- :x: 28
   :y: 11
   :tile: 10
   :angle: 0.0

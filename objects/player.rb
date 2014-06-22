@@ -108,6 +108,8 @@ class Player
       @angle = @vel_x * 2
     end
 
+    check_damaging_tiles
+
     check_health
   end
 
@@ -214,6 +216,13 @@ class Player
     end
   end
 
+  def on_left_wall?
+    not would_fit?(-20,0)
+  end
+  def on_right_wall?
+    not would_fit?(@image.width+20,0)
+  end
+
   def would_fit?(x_offset, y_offset)
     not @level.solid?(@loc.x + x_offset, @loc.y + y_offset) and
         not @level.solid?(@loc.x + x_offset, @loc.y + y_offset - @image.height/2)
@@ -228,13 +237,6 @@ class Player
     end
     @on_left_wall = false
     true
-  end
-
-  def on_left_wall?
-    not would_fit?(-20,0)
-  end
-  def on_right_wall?
-    not would_fit?(@image.width+20,0)
   end
 
   def would_fit_right?
@@ -304,6 +306,28 @@ class Player
     if @health < 0
       @health = 0
       @dead = true
+    end
+  end
+
+  def check_damaging_tiles
+    # left
+    ((@loc.y-@image.height/2+1).to_i..(@loc.y+@image.height/2-1).to_i).each do |y|
+      @dead = true if @level.tile_instant_death?(@loc.x+14,y)
+    end
+
+    #right
+    ((@loc.y-@image.height/2+1).to_i..(@loc.y+@image.height/2-1).to_i).each do |y|
+      @dead = true if @level.tile_instant_death?(@loc.x+@image.width-14,y)
+    end
+
+    #up
+    ((@loc.x+@image.width/2-15).to_i..(@loc.x+@image.width/2+15).to_i).each do |x|
+      @dead = true if @level.tile_instant_death?(x,@loc.y-@image.height/2)
+    end
+
+    #down
+    ((@loc.x+@image.width/2-15).to_i..(@loc.x+@image.width/2+15).to_i).each do |x|
+      @dead = true if @level.tile_instant_death?(x,@loc.y+@image.height/2)
     end
   end
 

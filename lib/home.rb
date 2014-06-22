@@ -15,6 +15,7 @@ def media_path(file)
 end
 
 class HomeWindow < Gosu::Window
+  attr_reader :exit
   def initialize
     @home_config = YAML.load_file('config/home.yml')
     @engine_config = YAML.load_file('config/engine.yml')
@@ -34,6 +35,8 @@ class HomeWindow < Gosu::Window
     @buttons = [@play_button_hash]
 
     @level_to_play = "levels/level_1.txt"
+
+    @exit = false
   end
 
   def update
@@ -51,8 +54,10 @@ class HomeWindow < Gosu::Window
     case id
       when Gosu::MsLeft
         button_click_handler(check_for_click(self.mouse_x, self.mouse_y))
-        game_window = GameWindow.new(@level_to_play)
-        game_window.show()
+        close
+      when Gosu::KbEscape
+        @exit = true
+        close
       else
     end
   end

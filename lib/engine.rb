@@ -85,7 +85,8 @@ class GameWindow < Gosu::Window
                            "I guess you felt too lucky, punk",
                            "Go and die another day",
                            "100 ways to die... and you pick the lamest one",]
-    @death_text = Gosu::Image.from_text(self, @death_text_strings[Gosu::random(0, @death_text_strings.length-1)], media_path("fonts/note_this.ttf"), 150)
+    @death_text = Gosu::Image.from_text(self, @death_text_strings[Gosu::random(0, @death_text_strings.length-1)],
+                                        media_path("fonts/note_this.ttf"), 150, 30, self.width, :center)
 
     # Wall padding -----------------------------------------------------------------------
     @padding = @config[:levelbox_padding]
@@ -94,6 +95,7 @@ class GameWindow < Gosu::Window
     @level_complete = false
     @eol_millis = 0
     @edit_block_selected = Tiles::Stone
+    @edit_block_angle = 0.0
 
   end # -- end initialization --
 
@@ -156,12 +158,20 @@ class GameWindow < Gosu::Window
           @config[:edit_mode] = true
           @config[:show_cursor] = true
         end
+      when Gosu::KbJ
+        @edit_block_angle -= 90.0 if @config[:edit_mode]
+        @edit_block_angle = 0.0 if @edit_block_angle == -360.0
+      when Gosu::KbK
+        @edit_block_angle += 90.0 if @config[:edit_mode]
+        @edit_block_angle = 0.0 if @edit_block_angle == 360.0
       else
     end
     @player.keypress_handler(id)
   end
 
   private
+
+  # Drawing functions --------------------------------------------------------------------------------------------------
 
   def draw_hud
     @font.draw("Player HP: <c=ff0000>#{@player.health}/#{@player.base_health}</c>", 10, 10, ZOrder::HUD)
@@ -184,23 +194,58 @@ class GameWindow < Gosu::Window
 
   def draw_block_selector
     @font.draw("Current Block:", self.width - 175, 70, ZOrder::HUD)
-    @edit_block_selected == Tiles::Stone ? @font.draw("<c=00ff00>1: Stone</c>", self.width - 150, 90, ZOrder::HUD) : @font.draw("1: Stone", self.width - 150, 90, ZOrder::HUD)
-    @edit_block_selected == Tiles::Gem   ? @font.draw("<c=00ff00>2: Gem</c>", self.width - 150, 110, ZOrder::HUD)   : @font.draw("2: Gem", self.width - 150, 110, ZOrder::HUD)
+    if @edit_block_selected == Tiles::Stone then
+      @font.draw("<c=00ff00>1: Stone</c>, <c=ff0000>#{@edit_block_angle}</c>", self.width - 150, 90, ZOrder::HUD)
+    else
+      @font.draw("1: Stone", self.width - 150, 90, ZOrder::HUD)
+    end
+
+    if @edit_block_selected == Tiles::Spike then
+      @font.draw("<c=00ff00>2: Spike</c>, <c=ff0000>#{@edit_block_angle}</c>", self.width - 150, 110, ZOrder::HUD)
+    else
+      @font.draw("2: Spike", self.width - 150, 110, ZOrder::HUD)
+    end
+
+    if @edit_block_selected == Tiles::Gem then
+      @font.draw("<c=00ff00>3: Gem</c>, <c=ff0000>#{@edit_block_angle}</c>", self.width - 150, 130, ZOrder::HUD)
+    else
+      @font.draw("3: Gem", self.width - 150, 130, ZOrder::HUD)
+    end
+
+    if @edit_block_selected == Tiles::Start then
+      @font.draw("<c=00ff00>4: Start</c>, <c=ff0000>#{@edit_block_angle}</c>", self.width - 150, 150, ZOrder::HUD)
+    else
+      @font.draw("4: Start", self.width - 150, 150, ZOrder::HUD)
+    end
+
+    if @edit_block_selected == Tiles::Goal then
+      @font.draw("<c=00ff00>5: Goal</c>, <c=ff0000>#{@edit_block_angle}</c>", self.width - 150, 170, ZOrder::HUD)
+    else
+      @font.draw("5: Goal", self.width - 150, 170, ZOrder::HUD)
+    end
   end
+
+  # Update functions ---------------------------------------------------------------------------------------------------
 
   def update_block_selector
     if button_down? Gosu::Kb1 or button_down? Gosu::KbNumpad1
       @edit_block_selected = Tiles::Stone
     elsif button_down? Gosu::Kb2 or button_down? Gosu::KbNumpad2
+      @edit_block_selected = Tiles::Spike
+    elsif button_down? Gosu::Kb3 or button_down? Gosu::KbNumpad3
       @edit_block_selected = Tiles::Gem
+    elsif button_down? Gosu::Kb4 or button_down? Gosu::KbNumpad4
+      @edit_block_selected = Tiles::Start
+    elsif button_down? Gosu::Kb5 or button_down? Gosu::KbNumpad5
+      @edit_block_selected = Tiles::Goal
     end
   end
 
   def block_painter
     if button_down? Gosu::MsLeft
-      @level.create_block(@camera, MyObj::Loc.new(self.mouse_x+25, self.mouse_y), @edit_block_selected) if @config[:edit_mode]
+      @level.create_block(@camera, MyObj::Loc.new(self.mouse_x+25, self.mouse_y), @edit_block_selected, @edit_block_angle)
     elsif button_down? Gosu::MsRight
-      @level.delete_block(@camera, MyObj::Loc.new(self.mouse_x+25, self.mouse_y)) if @config[:edit_mode]
+      @level.delete_block(@camera, MyObj::Loc.new(self.mouse_x+25, self.mouse_y))
     end
   end
 
