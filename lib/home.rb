@@ -15,7 +15,6 @@ def media_path(file)
 end
 
 class HomeWindow < Gosu::Window
-  attr_reader :exit
   def initialize
     @home_config = YAML.load_file('config/home.yml')
     @engine_config = YAML.load_file('config/engine.yml')
@@ -34,12 +33,12 @@ class HomeWindow < Gosu::Window
                          :y => self.height/2-@play_button.height/2}
     @buttons = [@play_button_hash]
 
-    @level_to_play = "levels/level_1.txt"
-
-    @exit = false
+    @intro_song = Gosu::Song.new(self, media_path("sounds/DST-BlinkWorld.ogg"))
+    @intro_song.play(true)
   end
 
   def update
+    @intro_song.play unless @intro_song.playing?
   end
 
   def draw

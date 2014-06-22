@@ -81,7 +81,7 @@ class Player
     collect_goodies(@level.gems)
 
     check_wall_collisions
-    @health -= 2 if inside_wall?
+    @health -= 2 if inside_wall? unless @config[:noclip]
 
     update_blink(blink_button_pressed)
 
@@ -108,7 +108,7 @@ class Player
       @angle = @vel_x * 2
     end
 
-    check_damaging_tiles
+    check_damaging_tiles unless @config[:noclip]
 
     check_health
   end
@@ -311,23 +311,23 @@ class Player
 
   def check_damaging_tiles
     # left
-    ((@loc.y-@image.height/2+1).to_i..(@loc.y+@image.height/2-1).to_i).each do |y|
+    ((@loc.y-@image.height/4).to_i..(@loc.y+@image.height/4).to_i).each do |y|
       @dead = true if @level.tile_instant_death?(@loc.x+14,y)
     end
 
     #right
-    ((@loc.y-@image.height/2+1).to_i..(@loc.y+@image.height/2-1).to_i).each do |y|
+    ((@loc.y-@image.height/4).to_i..(@loc.y+@image.height/4).to_i).each do |y|
       @dead = true if @level.tile_instant_death?(@loc.x+@image.width-14,y)
     end
 
     #up
     ((@loc.x+@image.width/2-15).to_i..(@loc.x+@image.width/2+15).to_i).each do |x|
-      @dead = true if @level.tile_instant_death?(x,@loc.y-@image.height/2)
+      @dead = true if @level.tile_instant_death?(x,@loc.y-@image.height/4)
     end
 
     #down
     ((@loc.x+@image.width/2-15).to_i..(@loc.x+@image.width/2+15).to_i).each do |x|
-      @dead = true if @level.tile_instant_death?(x,@loc.y+@image.height/2)
+      @dead = true if @level.tile_instant_death?(x,@loc.y+@image.height/4)
     end
   end
 

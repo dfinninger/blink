@@ -88,6 +88,9 @@ class GameWindow < Gosu::Window
     @death_text = Gosu::Image.from_text(self, @death_text_strings[Gosu::random(0, @death_text_strings.length-1)],
                                         media_path("fonts/note_this.ttf"), 150, 30, self.width, :center)
 
+    # Music ------------------------------------------------------------------------------
+    @game_music = Gosu::Song.new(self, media_path("sounds/DST-2ndBallad.ogg"))
+
     # Wall padding -----------------------------------------------------------------------
     @padding = @config[:levelbox_padding]
 
@@ -97,9 +100,11 @@ class GameWindow < Gosu::Window
     @edit_block_selected = Tiles::Stone
     @edit_block_angle = 0.0
 
+    @game_music.play
   end # -- end initialization --
 
   def update
+    @game_music.play unless @game_music.playing?
     @player.update((button_down? Gosu::KbLeft or button_down? Gosu::KbA),
                    (button_down? Gosu::KbRight or button_down? Gosu::KbD),
                    (button_down? Gosu::KbUp or button_down? Gosu::KbW),
@@ -278,7 +283,7 @@ class GameWindow < Gosu::Window
   end
 
   def on_player_death
-    nil
+    @game_music.stop
   end
 
 end

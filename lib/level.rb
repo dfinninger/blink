@@ -68,7 +68,7 @@ class Level
 
   def solid?(x, y)
     return false unless @tiles[x / TILE_SIZE][y / TILE_SIZE]
-    [Tiles::Stone,Tiles::Spike].include?(@tiles[x / TILE_SIZE][y / TILE_SIZE][:tile])
+    [Tiles::Stone].include?(@tiles[x / TILE_SIZE][y / TILE_SIZE][:tile])
   end
 
   def height
