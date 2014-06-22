@@ -50,9 +50,9 @@ class GameWindow < Gosu::Window
     @levelbox = MyObj::LevelBox.new(0, @level.width, 0, @level.height)
 
     # Background Image -------------------------------------------------------------------
-    #@background_image = Gosu::Image.new(self, media_path("backgrounds/bluewood.jpg"), true)
     @background = Background.new(self, 0, 0, media_path("backgrounds/bluewood.jpg"), ZOrder::Background)
     log self, "Background Loaded" if @config[:logging_enabled]
+
 
     # Player -----------------------------------------------------------------------------
     @player = Player.new(self)
@@ -87,6 +87,7 @@ class GameWindow < Gosu::Window
                            "100 ways to die... and you pick the lamest one",]
     @death_text = Gosu::Image.from_text(self, @death_text_strings[Gosu::random(0, @death_text_strings.length-1)],
                                         media_path("fonts/note_this.ttf"), 150, 30, self.width, :center)
+    @alpha = 0
 
     # Music ------------------------------------------------------------------------------
     @game_music = Gosu::Song.new(self, media_path("sounds/DST-2ndBallad.ogg"))
@@ -100,10 +101,13 @@ class GameWindow < Gosu::Window
     @edit_block_selected = Tiles::Stone
     @edit_block_angle = 0.0
 
-    @game_music.play
   end # -- end initialization --
 
   def update
+    if @player.dead
+      on_player_death
+      return
+    end
     @game_music.play unless @game_music.playing?
     @player.update((button_down? Gosu::KbLeft or button_down? Gosu::KbA),
                    (button_down? Gosu::KbRight or button_down? Gosu::KbD),
@@ -123,19 +127,14 @@ class GameWindow < Gosu::Window
       close
     end
 
-    on_player_death if @player.dead
+
   end
 
   def draw
     if @level_complete and (Gosu::milliseconds - @eol_millis) > 250
       @font.draw("Level Complete!", self.width/2-60, self.height/2, ZOrder::HUD)
     elsif @player.dead
-      self.draw_quad(0, 0, Gosu::Color::RED,
-                     self.width, 0, Gosu::Color::RED,
-                     0, self.height, Gosu::Color::BLACK,
-                     self.width, self.height, Gosu::Color::BLACK,
-                     ZOrder::HUD)
-      @death_text.draw(self.width/2 - @death_text.width/2, self.height/4, ZOrder::HUD)
+      draw_death
       return
     else
       @player.draw(@camera)
@@ -230,6 +229,15 @@ class GameWindow < Gosu::Window
     end
   end
 
+  def draw_death
+    self.draw_quad(0, 0, Gosu::Color.new((@alpha * 0xff).to_i, 0xff, 0x00, 0x00),
+                   self.width, 0, Gosu::Color.new((@alpha * 0xff).to_i, 0xff, 0x00, 0x00),
+                   0, self.height, Gosu::Color.new((@alpha * 0xff).to_i, 0x00, 0x00, 0x00),
+                   self.width, self.height, Gosu::Color.new((@alpha * 0xff).to_i, 0x00, 0x00, 0x00),
+                   ZOrder::HUD)
+    @death_text.draw(self.width/2 - @death_text.width/2, self.height/4, ZOrder::HUD)
+  end
+
   # Update functions ---------------------------------------------------------------------------------------------------
 
   def update_block_selector
@@ -283,7 +291,8 @@ class GameWindow < Gosu::Window
   end
 
   def on_player_death
-    @game_music.stop
+    @game_music.volume <= 0 ? @game_music.stop : @game_music.volume = @game_music.volume - 0.005
+    @alpha = @alpha >= 1 ? 1 : @alpha + 0.005
   end
 
 end

@@ -74,6 +74,10 @@ class Player
   end
 
   def update(left_pressed, right_pressed, up_pressed, down_pressed, blink_button_pressed)
+    if @dead
+      on_player_death
+      return
+    end
     adjust_velocity(left_pressed, right_pressed, up_pressed, down_pressed)
 
     @config[:noclip] ? move_noclip(left_pressed, right_pressed, up_pressed, down_pressed) : move
@@ -312,12 +316,12 @@ class Player
   def check_damaging_tiles
     # left
     ((@loc.y-@image.height/4).to_i..(@loc.y+@image.height/4).to_i).each do |y|
-      @dead = true if @level.tile_instant_death?(@loc.x+14,y)
+      @dead = true if @level.tile_instant_death?(@loc.x+20,y)
     end
 
     #right
     ((@loc.y-@image.height/4).to_i..(@loc.y+@image.height/4).to_i).each do |y|
-      @dead = true if @level.tile_instant_death?(@loc.x+@image.width-14,y)
+      @dead = true if @level.tile_instant_death?(@loc.x+@image.width-20,y)
     end
 
     #up
@@ -363,5 +367,10 @@ class Player
         true
       end
     end
+  end
+
+  def on_player_death
+    @angle = 90.0
+    @loc.y += 1
   end
 end

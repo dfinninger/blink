@@ -15,6 +15,7 @@ def media_path(file)
 end
 
 class HomeWindow < Gosu::Window
+  attr_reader :next_window
   def initialize
     @home_config = YAML.load_file('config/home.yml')
     @engine_config = YAML.load_file('config/engine.yml')
@@ -29,12 +30,17 @@ class HomeWindow < Gosu::Window
 
     @play_button = Gosu::Image.new(self, media_path("buttons/play.png"), false)
     @play_button_hash = {:obj => @play_button,
-                         :x => self.width/2-@play_button.width/2,
+                         :x => (self.width/4)*3-100-@play_button.width/2,
                          :y => self.height/2-@play_button.height/2}
-    @buttons = [@play_button_hash]
+    @settings_button = Gosu::Image.new(self, media_path("buttons/settings.png"), false)
+    @settings_button_hash = {:obj => @settings_button,
+                         :x => self.width/4+100-@settings_button.width/2,
+                         :y => self.height/2-@settings_button.height/2}
+    @buttons = [@play_button_hash, @settings_button_hash]
 
     @intro_song = Gosu::Song.new(self, media_path("sounds/DST-BlinkWorld.ogg"))
     @intro_song.play(true)
+    @next_window = nil
   end
 
   def update
@@ -45,15 +51,15 @@ class HomeWindow < Gosu::Window
     @background.draw(nil)
     @cursor.draw
     @title_text.draw(self.width/2-@title_text.width/2,50,0)
-    @play_button.draw(self.width/2-@play_button.width/2, self.height/2-@play_button.height/2, 0)
-    @play_text.draw(self.width/2-@play_text.width/2-4, self.height/2-@play_text.height/2, 0, 1, 1, Gosu::Color.new(0xff, 0x00, 0x00, 0x00), :default)
+    @play_button.draw((self.width/4)*3-100-@play_button.width/2, self.height/2-@play_button.height/2, 0)
+    @play_text.draw((self.width/4)*3-100-@play_text.width/2-4, self.height/2-@play_text.height/2, 0, 1, 1, Gosu::Color.new(0xff, 0x00, 0x00, 0x00), :default)
+    @settings_button.draw(self.width/4+100-@settings_button.width/2, self.height/2-@settings_button.height/2, 0)
   end
 
   def button_down(id)
     case id
       when Gosu::MsLeft
         button_click_handler(check_for_click(self.mouse_x, self.mouse_y))
-        close
       when Gosu::KbEscape
         @exit = true
         close
@@ -64,10 +70,13 @@ class HomeWindow < Gosu::Window
   private
 
   def check_for_click(x, y)
+    puts "checking button click"
     @buttons.each do |button|
       x_val = (button[:x]..(button[:x] + button[:obj].width)).to_a.include?(x.to_i)
       y_val = (button[:y]..(button[:y] + button[:obj].width)).to_a.include?(y.to_i)
+      puts "#{button[:obj]}: x = #{x_val}, y = #{y_val}"
       if x_val and y_val
+        puts button[:obj]
         return button[:obj]
       end
     end
@@ -78,7 +87,11 @@ class HomeWindow < Gosu::Window
     return false unless button
     case button
       when @play_button
-
+        @next_window = :game
+        close
+      when @settings_button
+        @next_window = :settings
+        close
     end
   end
 
