@@ -2012,6 +2012,22 @@
   :y: 15
   :tile: 10
   :angle: 0.0
+- :x: 16
+  :y: 15
+  :tile: 2
+  :angle: -180.0
+- :x: 17
+  :y: 15
+  :tile: 2
+  :angle: -180.0
+- :x: 18
+  :y: 15
+  :tile: 2
+  :angle: -180.0
+- :x: 19
+  :y: 15
+  :tile: 2
+  :angle: -180.0
 - :x: 20
   :y: 15
   :tile: 10
@@ -2232,6 +2248,14 @@
   :y: 18
   :tile: 10
   :angle: 0.0
+- :x: 10
+  :y: 18
+  :tile: 2
+  :angle: 0.0
+- :x: 11
+  :y: 18
+  :tile: 2
+  :angle: 0.0
 - :x: 45
   :y: 18
   :tile: 10
@@ -2244,6 +2268,18 @@
   :y: 19
   :tile: 10
   :angle: 0.0
+- :x: 10
+  :y: 19
+  :tile: 10
+  :angle: 0.0
+- :x: 11
+  :y: 19
+  :tile: 10
+  :angle: 0.0
+- :x: 12
+  :y: 19
+  :tile: 2
+  :angle: 90.0
 - :x: 45
   :y: 19
   :tile: 10
@@ -2256,6 +2292,18 @@
   :y: 20
   :tile: 10
   :angle: 0.0
+- :x: 10
+  :y: 20
+  :tile: 10
+  :angle: 0.0
+- :x: 11
+  :y: 20
+  :tile: 10
+  :angle: 0.0
+- :x: 12
+  :y: 20
+  :tile: 2
+  :angle: 90.0
 - :x: 20
   :y: 20
   :tile: 10
@@ -2297,6 +2345,46 @@
   :tile: 10
   :angle: 0.0
 - :x: 0
+  :y: 21
+  :tile: 10
+  :angle: 0.0
+- :x: 10
+  :y: 21
+  :tile: 10
+  :angle: 0.0
+- :x: 11
+  :y: 21
+  :tile: 10
+  :angle: 0.0
+- :x: 12
+  :y: 21
+  :tile: 10
+  :angle: 0.0
+- :x: 13
+  :y: 21
+  :tile: 10
+  :angle: 0.0
+- :x: 14
+  :y: 21
+  :tile: 10
+  :angle: 0.0
+- :x: 15
+  :y: 21
+  :tile: 10
+  :angle: 0.0
+- :x: 16
+  :y: 21
+  :tile: 10
+  :angle: 0.0
+- :x: 17
+  :y: 21
+  :tile: 10
+  :angle: 0.0
+- :x: 18
+  :y: 21
+  :tile: 10
+  :angle: 0.0
+- :x: 19
   :y: 21
   :tile: 10
   :angle: 0.0

@@ -9,14 +9,14 @@ class Map
   TILE_SIZE = 80
   attr_accessor :gems
   attr_reader :start, :goal
-  def initialize(window)
+  def initialize(window, level_name)
     @tileset = Gosu::Image.load_tiles(window, media_path("tilesets/plat_tiles.png"), TILE_SIZE, TILE_SIZE, true)
 
     @gem_image = @tileset[Tiles::Gem]
     @gems = []
     @background_tiles = []
 
-    @map    = YAML.load_file(media_path('levels/test_level.yml'))
+    @map    = YAML.load_file(media_path("levels/#{level_name}.yml"))
     @start  = MyObj::Loc.new(@map[:start][:x] * TILE_SIZE, @map[:start][:y] * TILE_SIZE)
     @goal   = MyObj::Loc.new(@map[:goal][:x] * TILE_SIZE, @map[:goal][:y] * TILE_SIZE)
     @tiles  = Array.new(@map[:width]) { |x| Array.new(@map[:height]) { |y| nil } }

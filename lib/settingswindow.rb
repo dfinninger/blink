@@ -14,14 +14,14 @@ class SettingsWindow < Gosu::Window
     self.caption = "Blink Settings"
 
     @config = YAML.load_file('config/engine.yml')
-    @init_text = [@config[:height].to_s, @config[:width].to_s, @config[:fullscreen].to_s]
-    @init_descriptors = ["Height", "Width", "Fullscreen?"]
+    @init_text = [@config[:height].to_s, @config[:width].to_s, @config[:fullscreen].to_s, @config[:level]]
+    @init_descriptors = ["Height", "Width", "Fullscreen?", "Level Name"]
 
     font = Gosu::Font.new(self, Gosu::default_font_name, 20)
 
     # Set up an array of three text fields.
-    @text_fields = Array.new(3) { |index| TextField.new(self, font, 200, 30 + index * 50, @init_text[index]) }
-    @text_descriptors = Array.new(3) { |index| Gosu::Image.from_text(self, @init_descriptors[index], font, 20) }
+    @text_fields = Array.new(4) { |index| TextField.new(self, font, 200, 30 + index * 50, @init_text[index]) }
+    @text_descriptors = Array.new(4) { |index| Gosu::Image.from_text(self, @init_descriptors[index], font, 20) }
 
     @cursor = Gosu::Image.new(self, media_path("cursors/windows_cursor.png"), false)
 
@@ -32,7 +32,7 @@ class SettingsWindow < Gosu::Window
     @text_fields.each { |tf| tf.draw }
     @text_descriptors.each_with_index { |td, idx| td.draw(100, 33 + idx * 50, 0) }
     @cursor.draw(mouse_x, mouse_y, 0)
-    @save_message.draw(self.width/2-@save_message.width/2, 200, 0)
+    @save_message.draw(self.width/2-@save_message.width/2, 250, 0)
   end
 
   def button_down(id)
@@ -62,6 +62,7 @@ class SettingsWindow < Gosu::Window
     @config[:height] = @text_fields[0].text.to_i
     @config[:width] = @text_fields[1].text.to_i
     @config[:fullscreen] = @text_fields[2].text == "true"
+    @config[:level] = @text_fields[3].text
     File.open('config/engine.yml', 'w+') {  |f| f.write(@config.to_yaml) }
     close
   end

@@ -43,7 +43,7 @@ class GameWindow < Gosu::Window
     log self, "Camera loaded" if @config[:logging_enabled]
 
     # init level -------------------------------------------------------------------------
-    @level = Map.new(self)
+    @level = Map.new(self, @config[:level])
     @goal_fudge_factor = MyObj::Loc.new(65,65)
 
     # Walls, ceiling and floor -----------------------------------------------------------
