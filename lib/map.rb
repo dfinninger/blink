@@ -15,8 +15,8 @@ class Map
     @gems = []
     @background_tiles = []
 
-    file = media_path("levels/#{level_name}.yml")
-    @map = File.file?(file) ? YAML.load_file(file) : new_level
+    @file = media_path("levels/#{level_name}.yml")
+    @map = File.file?(@file) ? YAML.load_file(@file) : new_level
     @start  = MyObj::Loc.new(@map[:start][:x] * TILE_SIZE, @map[:start][:y] * TILE_SIZE)
     @goal   = MyObj::Loc.new(@map[:goal][:x] * TILE_SIZE, @map[:goal][:y] * TILE_SIZE)
     @tiles  = Array.new(@map[:width]) { |x| Array.new(@map[:height]) { |y| nil } }
@@ -99,7 +99,7 @@ class Map
       @map[:gems].push({:x => gem.loc.x, :y => gem.loc.y})
     end
 
-    File.open(media_path('levels/test_level.yml'), 'w+') {  |f| f.write(@map.to_yaml) }
+    File.open(@file, 'w+') {  |f| f.write(@map.to_yaml) }
   end
 
   private
@@ -113,8 +113,8 @@ class Map
             :y => 1
         },
         :goal => {
-            :x => 2,
-            :y => 2
+            :x => 50,
+            :y => 50
         },
         :tiles => [],
         :gems => []
