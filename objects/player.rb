@@ -16,13 +16,12 @@ class Player
   SIDEROOM = 33
   WIDTH = SIDEROOM * 2
   HEIGHT = FOOTROOM + HEADROOM
-  GRAVITY = 0.4
   MAX_PERCENT = 100
   MAX_FALL_SPEED = 50
 
   attr_accessor :loc, :health, :base_health, :recently_hit, :on_left_wall,
-                :on_right_wall, :off_ground, :config, :gems_collected
-  attr_reader :foot, :left, :right, :blink_charge, :blink_prep, :dead
+                :on_right_wall, :off_ground, :config, :gems_collected, :dead
+  attr_reader :foot, :left, :right, :blink_charge, :blink_prep
 
   def initialize(window)
     # load config ---------------------------------------------------------------------
@@ -61,6 +60,7 @@ class Player
     @blink_recharging = false
     @current_blink_length = 0
     @dead = false
+    @wobble_millis = 0
   end
 
   def warp(loc)
@@ -98,7 +98,11 @@ class Player
     @vel_x *= 0.9 unless on_floor?
     @vel_x = 0 if (@vel_x >= -0.1) and (@vel_x <= 0.1)
     @vel_y = on_floor? ? 0 : @vel_y + @config[:gravity]
-    @vel_y = MAX_FALL_SPEED if @vel_y > MAX_FALL_SPEED
+    if on_left_wall? or on_right_wall?
+      @vel_y = (MAX_FALL_SPEED - 40) if @vel_y > (MAX_FALL_SPEED - 40)
+    else
+      @vel_y = MAX_FALL_SPEED if @vel_y > MAX_FALL_SPEED
+    end
 
     # walljump ------------------------------------------------------------------------
     @already_walljumped = false unless on_left_wall? or on_right_wall?
@@ -110,6 +114,7 @@ class Player
       @angle = -20.0
     else
       @angle = @vel_x * 2
+      @angle += 3*Math.sin(Gosu::milliseconds / 133.7) if @vel_x.abs == @config[:max_run_speed]
     end
 
     check_damaging_tiles unless @config[:noclip]
@@ -221,10 +226,10 @@ class Player
   end
 
   def on_left_wall?
-    not would_fit?(-20,0)
+    not would_fit?(0,0)
   end
   def on_right_wall?
-    not would_fit?(@image.width+20,0)
+    not would_fit?(@image.width,0)
   end
 
   def would_fit?(x_offset, y_offset)
@@ -273,7 +278,7 @@ class Player
 
   def near_floor?
     ((@loc.x+@image.width/2-15).to_i..(@loc.x+@image.width/2+15).to_i).each do |x|
-      return true if @level.solid?(x,@loc.y+@image.height/2+80)
+      return true if @level.solid?(x,@loc.y+@image.height/2+60)
     end
     false
   end

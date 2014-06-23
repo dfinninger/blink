@@ -24,7 +24,8 @@ class Map
       @tiles[tile[:x]][tile[:y]] = tile
     end
 
-    @map[:gems].each { |gem| @gems.push(Collectibles::Gem.new(@gem_image,  gem[:x] * TILE_SIZE + 7, gem[:y] * TILE_SIZE + TILE_SIZE/2)) }
+    @map[:gems].each { |gem| @gems.push(Collectibles::Gem.new(@gem_image,  gem[:x], gem[:y])) } if @map[:gems]
+    @gem_timeout = 0
   end
 
   def draw(camera)
@@ -60,7 +61,10 @@ class Map
   def create_block(camera, loc, block, angle = 0.0)
     x, y = *camera.screen_to_world(loc).to_a
     if block == Tiles::Gem
-      @gems.push(Collectibles::Gem.new(@gem_image, loc.x * TILE_SIZE + 7, loc.y * TILE_SIZE + TILE_SIZE/2))
+      if (Gosu::milliseconds - @gem_timeout) > 200
+        @gems.push(Collectibles::Gem.new(@gem_image, x - 25, y))
+        @gem_timeout = Gosu::milliseconds
+      end
     else
       @tiles[x / TILE_SIZE][y / TILE_SIZE] = { :x => x.to_i / TILE_SIZE, :y => y.to_i / TILE_SIZE, :tile => block, :angle => angle }
     end
@@ -88,6 +92,11 @@ class Map
           @map[:tiles].push(@tiles[x][y])
         end
       end
+    end
+
+    @map[:gems] = []
+    @gems.each do |gem|
+      @map[:gems].push({:x => gem.loc.x, :y => gem.loc.y})
     end
 
     File.open(media_path('levels/test_level.yml'), 'w+') {  |f| f.write(@map.to_yaml) }

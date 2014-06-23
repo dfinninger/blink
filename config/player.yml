@@ -8,5 +8,5 @@
 :blink_recharge_rate: 0.1
 :blink_distance: 200
 :jumpheight: 15
-:noclip: false
+:noclip: true
 :noclip_speed: 10

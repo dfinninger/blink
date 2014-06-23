@@ -236,6 +236,8 @@ class GameWindow < Gosu::Window
                    self.width, self.height, Gosu::Color.new((@alpha * 0xff).to_i, 0x00, 0x00, 0x00),
                    ZOrder::HUD)
     @death_text.draw(self.width/2 - @death_text.width/2, self.height/4, ZOrder::HUD)
+    #@font.draw("Continue? (Enter)", self.width/2-65, self.height/4*3, ZOrder::HUD)
+    @font.draw("Quit? (Esc)", self.width/2-40, self.height/4*3+20, ZOrder::HUD)
   end
 
   # Update functions ---------------------------------------------------------------------------------------------------
