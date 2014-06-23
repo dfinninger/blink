@@ -11,12 +11,12 @@ class Map
   attr_reader :start, :goal
   def initialize(window, level_name)
     @tileset = Gosu::Image.load_tiles(window, media_path("tilesets/plat_tiles.png"), TILE_SIZE, TILE_SIZE, true)
-
     @gem_image = @tileset[Tiles::Gem]
     @gems = []
     @background_tiles = []
 
-    @map    = YAML.load_file(media_path("levels/#{level_name}.yml"))
+    file = media_path("levels/#{level_name}.yml")
+    @map = File.file?(file) ? YAML.load_file(file) : new_level
     @start  = MyObj::Loc.new(@map[:start][:x] * TILE_SIZE, @map[:start][:y] * TILE_SIZE)
     @goal   = MyObj::Loc.new(@map[:goal][:x] * TILE_SIZE, @map[:goal][:y] * TILE_SIZE)
     @tiles  = Array.new(@map[:width]) { |x| Array.new(@map[:height]) { |y| nil } }
@@ -100,5 +100,24 @@ class Map
     end
 
     File.open(media_path('levels/test_level.yml'), 'w+') {  |f| f.write(@map.to_yaml) }
+  end
+
+  private
+
+  def new_level
+    {
+        :width => 50,
+        :height => 50,
+        :start => {
+            :x => 1,
+            :y => 1
+        },
+        :goal => {
+            :x => 2,
+            :y => 2
+        },
+        :tiles => [],
+        :gems => []
+    }
   end
 end
