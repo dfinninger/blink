@@ -87,6 +87,8 @@ class GameWindow < Gosu::Window
                            "100 ways to die... and you pick the lamest one",]
     @death_text = Gosu::Image.from_text(self, @death_text_strings[Gosu::random(0, @death_text_strings.length-1)],
                                         media_path("fonts/note_this.ttf"), 150, 30, self.width, :center)
+    @win_text = Gosu::Image.from_text(self, "Level Complete!",
+                                      media_path("fonts/note_this.ttf"), 150, 30, self.width, :center)
     @alpha = 0
 
     # Music ------------------------------------------------------------------------------
@@ -106,6 +108,9 @@ class GameWindow < Gosu::Window
   def update
     if @player.dead
       on_player_death
+      return
+    elsif @level_complete
+      on_win
       return
     end
     @game_music.play unless @game_music.playing?
@@ -131,8 +136,9 @@ class GameWindow < Gosu::Window
   end
 
   def draw
-    if @level_complete and (Gosu::milliseconds - @eol_millis) > 250
-      @font.draw("Level Complete!", self.width/2-60, self.height/2, ZOrder::HUD)
+    if @level_complete
+      draw_win
+      return
     elsif @player.dead
       draw_death
       return
@@ -240,6 +246,17 @@ class GameWindow < Gosu::Window
     @font.draw("Quit? (Esc)", self.width/2-40, self.height/4*3+20, ZOrder::HUD)
   end
 
+  def draw_win
+    self.draw_quad(0, 0, Gosu::Color.new((@alpha * 0xff).to_i, 0x00, 0xcc, 0x00),
+                   self.width, 0, Gosu::Color.new((@alpha * 0xff).to_i, 0x00, 0xcc, 0x00),
+                   0, self.height, Gosu::Color.new((@alpha * 0xff).to_i, 0x00, 0x00, 0x00),
+                   self.width, self.height, Gosu::Color.new((@alpha * 0xff).to_i, 0x00, 0x00, 0x00),
+                   ZOrder::HUD)
+    @win_text.draw(self.width/2 - @win_text.width/2, self.height/4, ZOrder::HUD)
+    #@font.draw("Continue? (Enter)", self.width/2-65, self.height/4*3, ZOrder::HUD)
+    @font.draw("Quit? (Esc)", self.width/2-40, self.height/4*3+20, ZOrder::HUD)
+  end
+
   # Update functions ---------------------------------------------------------------------------------------------------
 
   def update_block_selector
@@ -293,6 +310,10 @@ class GameWindow < Gosu::Window
   end
 
   def on_player_death
+    @game_music.volume <= 0 ? @game_music.stop : @game_music.volume = @game_music.volume - 0.005
+    @alpha = @alpha >= 1 ? 1 : @alpha + 0.005
+  end
+  def on_win
     @game_music.volume <= 0 ? @game_music.stop : @game_music.volume = @game_music.volume - 0.005
     @alpha = @alpha >= 1 ? 1 : @alpha + 0.005
   end

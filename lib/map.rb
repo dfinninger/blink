@@ -70,11 +70,11 @@ class Map
     end
 
     if block == Tiles::Start
-      @map[:start][:x] = x / TILE_SIZE
-      @map[:start][:y] = y / TILE_SIZE
+      @map[:start][:x] = x.floor / TILE_SIZE
+      @map[:start][:y] = y.floor / TILE_SIZE
     elsif block == Tiles::Goal
-      @map[:goal][:x] = x / TILE_SIZE
-      @map[:goal][:y] = y / TILE_SIZE
+      @map[:goal][:x] = x.floor / TILE_SIZE
+      @map[:goal][:y] = y.floor / TILE_SIZE
     end
   end
 
