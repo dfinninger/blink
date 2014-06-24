@@ -5,7 +5,19 @@
 :textboxes:
 - :text: Welcome to blink!
   :x: 1
+  :y: 5
+- :text: Arrow Keys/WASD to move!
+  :x: 1
   :y: 6
+- :text: Jump while in the air on a wall for a walljump!
+  :x: 34
+  :y: 6
+- :text: Careful! Spikes hurt!
+  :x: 36
+  :y: 11
+- :text: Use SPACEBAR and a direction to BLINK across the gap!
+  :x: 9
+  :y: 41
 :start:
   :x: 1
   :y: 7

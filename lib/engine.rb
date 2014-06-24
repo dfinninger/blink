@@ -169,6 +169,14 @@ class GameWindow < Gosu::Window
           @config[:edit_mode] = true if @level.editable
           @config[:show_cursor] = true if @level.editable
         end
+      when Gosu::KbV
+        if @config[:debug]
+          @config[:debug] = false
+          @config[:show_cursor] = false
+        else
+          @config[:debug] = true
+          @config[:show_cursor] = true
+        end
       when Gosu::KbJ
         @edit_block_angle -= 90.0 if @config[:edit_mode]
         @edit_block_angle = 0.0 if @edit_block_angle == -360.0
@@ -202,17 +210,18 @@ class GameWindow < Gosu::Window
                    5,   130, Gosu::Color.argb(0xcc000000),
                    175, 130, Gosu::Color.argb(0xcc000000),
                    ZOrder::HUD)
-    @font.draw("Mouse - X: #{mouse_x} :: Y: #{mouse_y}", 10, 90, ZOrder::HUD)
-    @font.draw("Player - X: #{@player.loc.x} :: Y: #{@player.loc.y}", 10, 110, ZOrder::HUD)
+    @font.draw("Mouse - X: #{(mouse_x/80).floor} :: Y: #{(mouse_y/80).floor}", 10, 90, ZOrder::HUD)
+    @font.draw("Player - X: #{(@player.loc.x/80).floor} :: Y: #{(@player.loc.y/80).floor}", 10, 110, ZOrder::HUD)
   end
 
   def draw_noclip
-    self.draw_quad(5,   90,  Gosu::Color.argb(0xcc000000),
-                   175, 90,  Gosu::Color.argb(0xcc000000),
-                   5,   110, Gosu::Color.argb(0xcc000000),
-                   175, 110, Gosu::Color.argb(0xcc000000),
+    mod = @config[:debug] ? 40 : 0
+    self.draw_quad(5,   90 + mod,  Gosu::Color.argb(0xcc000000),
+                   175, 90 + mod,  Gosu::Color.argb(0xcc000000),
+                   5,   110 + mod, Gosu::Color.argb(0xcc000000),
+                   175, 110 + mod, Gosu::Color.argb(0xcc000000),
                    ZOrder::HUD)
-    @font.draw("<c=0000ff>NO_CLIP ENABLED!</c>", 10, 90, ZOrder::HUD)
+    @font.draw("NO_CLIP ENABLED!", 10, 90 + mod, ZOrder::HUD)
   end
 
   def draw_editmode
