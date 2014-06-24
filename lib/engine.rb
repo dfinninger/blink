@@ -58,7 +58,6 @@ class GameWindow < Gosu::Window
     @player = Player.new(self)
     log self, "Player Loaded" if @config[:logging_enabled]
     @player.warp(@level.start)
-    @player.warp(MyObj::Loc.new(@level.start.x+80, @level.start.y))
     log self, "Player Warped" if @config[:logging_enabled]
 
     # cursor -----------------------------------------------------------------------------
@@ -167,8 +166,8 @@ class GameWindow < Gosu::Window
           @config[:edit_mode] = false
           @config[:show_cursor] = false
         else
-          @config[:edit_mode] = true
-          @config[:show_cursor] = true
+          @config[:edit_mode] = true if @level.editable
+          @config[:show_cursor] = true if @level.editable
         end
       when Gosu::KbJ
         @edit_block_angle -= 90.0 if @config[:edit_mode]
@@ -186,26 +185,51 @@ class GameWindow < Gosu::Window
   # Drawing functions --------------------------------------------------------------------------------------------------
 
   def draw_hud
+    self.draw_quad(5,   10, Gosu::Color.argb(0xcc000000),
+                   160, 10, Gosu::Color.argb(0xcc000000),
+                   5,   90, Gosu::Color.argb(0xcc000000),
+                   160, 90, Gosu::Color.argb(0xcc000000),
+                   ZOrder::HUD)
     @font.draw("Player HP:\t<c=ff0000>#{@player.health}/#{@player.base_health}</c>", 10, 10, ZOrder::HUD)
-    @font.draw("Blink Chrg:\t<c=00ff00>#{@player.blink_charge}%</c>", 10, 30, ZOrder::HUD)
+    @font.draw("Blink Chrg:\t<c=00ff00>%.2f</c>" % @player.blink_charge, 10, 30, ZOrder::HUD)
     @font.draw("Gems Left:\t<c=ff0000>#{@level.gems.length}", 10, 50, ZOrder::HUD)
     @font.draw("Lives:\t\t\t<c=ff0000>#{@player.lives}", 10, 70, ZOrder::HUD)
   end
 
   def draw_debug
-    @font.draw("Mouse - X: #{mouse_x} :: Y: #{mouse_y}", 10, 50, ZOrder::HUD)
-    @font.draw("Player - X: #{@player.loc.x} :: Y: #{@player.loc.y}", 10, 70, ZOrder::HUD)
+    self.draw_quad(5,   90,  Gosu::Color.argb(0xcc000000),
+                   175, 90,  Gosu::Color.argb(0xcc000000),
+                   5,   130, Gosu::Color.argb(0xcc000000),
+                   175, 130, Gosu::Color.argb(0xcc000000),
+                   ZOrder::HUD)
+    @font.draw("Mouse - X: #{mouse_x} :: Y: #{mouse_y}", 10, 90, ZOrder::HUD)
+    @font.draw("Player - X: #{@player.loc.x} :: Y: #{@player.loc.y}", 10, 110, ZOrder::HUD)
   end
 
   def draw_noclip
+    self.draw_quad(5,   90,  Gosu::Color.argb(0xcc000000),
+                   175, 90,  Gosu::Color.argb(0xcc000000),
+                   5,   110, Gosu::Color.argb(0xcc000000),
+                   175, 110, Gosu::Color.argb(0xcc000000),
+                   ZOrder::HUD)
     @font.draw("<c=0000ff>NO_CLIP ENABLED!</c>", 10, 90, ZOrder::HUD)
   end
 
   def draw_editmode
+    self.draw_quad(self.width/2-@edit_mode_txt.width/2-5, 35,  Gosu::Color.argb(0xcc000000),
+                   self.width/2+@edit_mode_txt.width/2+5, 35,  Gosu::Color.argb(0xcc000000),
+                   self.width/2-@edit_mode_txt.width/2-5, 90, Gosu::Color.argb(0xcc000000),
+                   self.width/2+@edit_mode_txt.width/2+5, 90, Gosu::Color.argb(0xcc000000),
+                   ZOrder::HUD)
     @edit_mode_txt.draw(self.width/2-@edit_mode_txt.width/2, 40, ZOrder::HUD)
   end
 
   def draw_block_selector
+    self.draw_quad(self.width-180, 65,  Gosu::Color.argb(0xcc000000),
+                   self.width-25, 65,  Gosu::Color.argb(0xcc000000),
+                   self.width-180, 195, Gosu::Color.argb(0xcc000000),
+                   self.width-25, 195, Gosu::Color.argb(0xcc000000),
+                   ZOrder::HUD)
     @font.draw("Current Block:", self.width - 175, 70, ZOrder::HUD)
     if @edit_block_selected == Tiles::Stone then
       @font.draw("<c=00ff00>1: Stone</c>, <c=ff0000>#{@edit_block_angle}</c>", self.width - 150, 90, ZOrder::HUD)

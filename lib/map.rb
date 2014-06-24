@@ -8,7 +8,7 @@ end
 class Map
   TILE_SIZE = 80
   attr_accessor :gems
-  attr_reader :start, :goal
+  attr_reader :start, :goal, :editable
   def initialize(window, level_name)
     @tileset = Gosu::Image.load_tiles(window, media_path("tilesets/plat_tiles.png"), TILE_SIZE, TILE_SIZE, true)
     @gem_image = @tileset[Tiles::Gem]
@@ -19,6 +19,7 @@ class Map
     @map = File.file?(@file) ? YAML.load_file(@file) : new_level
     @start  = MyObj::Loc.new(@map[:start][:x] * TILE_SIZE, @map[:start][:y] * TILE_SIZE)
     @goal   = MyObj::Loc.new(@map[:goal][:x] * TILE_SIZE, @map[:goal][:y] * TILE_SIZE)
+    @textboxes = @map[:textboxes]
     @tiles  = Array.new(@map[:width]) { |x| Array.new(@map[:height]) { |y| nil } }
     @map[:tiles].each do |tile|
       @tiles[tile[:x]][tile[:y]] = tile
@@ -26,6 +27,9 @@ class Map
 
     @map[:gems].each { |gem| @gems.push(Collectibles::Gem.new(@gem_image,  gem[:x], gem[:y])) } if @map[:gems]
     @gem_timeout = 0
+
+    @font = Gosu::Font.new(window, media_path("fonts/Roboto-Regular.ttf"), 30)
+    @editable = @map[:editable]
   end
 
   def draw(camera)
@@ -37,6 +41,10 @@ class Map
       end
     end
     @gems.each { |c| c.draw(camera) }
+    @textboxes.each do |textbox|
+      loc = MyObj::Loc.new(textbox[:x] * TILE_SIZE, textbox[:y] * TILE_SIZE)
+      @font.draw(textbox[:text], *camera.world_to_screen(loc).to_a, ZOrder::Terrain)
+    end
   end
 
   def solid?(x, y)

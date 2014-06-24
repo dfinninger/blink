@@ -234,6 +234,7 @@ class Player
         @animation_playing = false
         @invulnerable = false
         @travel_step = nil
+        @vel_x = @vel_y = 0
       end
     end
   end
