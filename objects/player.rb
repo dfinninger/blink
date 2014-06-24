@@ -21,7 +21,7 @@ class Player
 
   attr_accessor :loc, :health, :base_health, :recently_hit, :on_left_wall,
                 :on_right_wall, :off_ground, :config, :gems_collected, :dead
-  attr_reader :foot, :left, :right, :blink_charge, :blink_prep
+  attr_reader :foot, :left, :right, :blink_charge, :blink_prep, :lives, :loss_life_ani
 
   def initialize(window)
     # load config ---------------------------------------------------------------------
@@ -49,6 +49,7 @@ class Player
     @base_health = @config[:base_health]
     @blink_charge = MAX_PERCENT
     @blink_recharge_rate = @config[:blink_recharge_rate]
+    @lives = @config[:base_lives]
 
     # init state variables ------------------------------------------------------------
     @up_still_pressed = false
@@ -60,11 +61,15 @@ class Player
     @blink_recharging = false
     @current_blink_length = 0
     @dead = false
+    @animation_playing = false
+    @invulnerable = false
     @wobble_millis = 0
+    @travel_step = nil
   end
 
   def warp(loc)
-    @loc = loc
+    @loc.x = loc.x
+    @loc.y = loc.y
   end
 
   def hitbox
@@ -78,10 +83,14 @@ class Player
       on_player_death
       return
     end
+
+    if @animation_playing
+      animation_handler
+      return
+    end
+
     adjust_velocity(left_pressed, right_pressed, up_pressed, down_pressed)
-
     @config[:noclip] ? move_noclip(left_pressed, right_pressed, up_pressed, down_pressed) : move
-
     collect_goodies(@level.gems)
 
     check_wall_collisions
@@ -90,35 +99,15 @@ class Player
     update_blink(blink_button_pressed)
 
     # apply friction and gravity to movement ------------------------------------------
-    @vel_x = @config[:max_run_speed] if @vel_x > @config[:max_run_speed]
-    @vel_x = -@config[:max_run_speed] if @vel_x < -@config[:max_run_speed]
-    unless right_pressed or left_pressed
-      @vel_x *= 0.5 if on_floor?
-    end
-    @vel_x *= 0.9 unless on_floor?
-    @vel_x = 0 if (@vel_x >= -0.1) and (@vel_x <= 0.1)
-    @vel_y = on_floor? ? 0 : @vel_y + @config[:gravity]
-    if on_left_wall? or on_right_wall?
-      @vel_y = (MAX_FALL_SPEED - 40) if @vel_y > (MAX_FALL_SPEED - 40)
-    else
-      @vel_y = MAX_FALL_SPEED if @vel_y > MAX_FALL_SPEED
-    end
+    friction_and_gravity(right_pressed, left_pressed)
 
     # walljump ------------------------------------------------------------------------
     @already_walljumped = false unless on_left_wall? or on_right_wall?
 
     # adjust player angle -------------------------------------------------------------
-    if on_left_wall? and not near_floor?
-      @angle = 20.0
-    elsif on_right_wall? and not near_floor?
-      @angle = -20.0
-    else
-      @angle = @vel_x * 2
-      @angle += 3*Math.sin(Gosu::milliseconds / 133.7) if @vel_x.abs == @config[:max_run_speed]
-    end
+    update_player_angle
 
     check_damaging_tiles unless @config[:noclip]
-
     check_health
   end
 
@@ -136,13 +125,25 @@ class Player
       when Gosu::KbQ
         @config[:noclip] = !@config[:noclip]
       when Gosu::KbR
-        warp(MyObj::Loc.new(500,500))
+        warp(@level.start)
       when Gosu::KbF
         @blink_charge = 100
       else
     end
   end
 
+  def lose_life
+    @lives -= 1 unless @invulnerable
+    @dead = @lives == 0 ? true : false
+    #warp(@level.start)
+    @invulnerable = true
+    @loss_life_ani = true
+    @animation_playing = true
+  end
+
+  # ====================================================================================================================
+  # -- PRIVATE METHODS -------------------------------------------------------------------------------------------------
+  # ====================================================================================================================
 
   private
 
@@ -169,7 +170,23 @@ class Player
     @loc.y += @config[:noclip_speed] if d
   end
 
-  def update_blink(blink_button_pressed) # This is where we get the name from!! ------------------------------------
+  def friction_and_gravity(r, l)
+    @vel_x = @config[:max_run_speed] if @vel_x > @config[:max_run_speed]
+    @vel_x = -@config[:max_run_speed] if @vel_x < -@config[:max_run_speed]
+    unless r or l
+      @vel_x *= 0.5 if on_floor?
+    end
+    @vel_x *= 0.9 unless on_floor?
+    @vel_x = 0 if (@vel_x >= -0.1) and (@vel_x <= 0.1)
+    @vel_y = on_floor? ? 0 : @vel_y + @config[:gravity]
+    if on_left_wall? or on_right_wall?
+      @vel_y = (MAX_FALL_SPEED - 40) if @vel_y > (MAX_FALL_SPEED - 40)
+    else
+      @vel_y = MAX_FALL_SPEED if @vel_y > MAX_FALL_SPEED
+    end
+  end
+
+  def update_blink(blink_button_pressed) # This is where we get the name from!!
     if blink_button_pressed and (@blink_charge.to_i == 100)
       @blink_prep = true
       if @current_blink_length <= @config[:blink_distance]
@@ -205,6 +222,20 @@ class Player
 
   def blink
     @loc.x += (@current_blink_length * (@vel_x <=> 0))
+  end
+
+  def animation_handler
+    if @loss_life_ani
+      @angle += 3.6
+      @travel_step = (@level.start - @loc)*0.01 unless @travel_step
+      @loc = @loc + @travel_step
+      if (@loc.x - @level.start.x).abs < 20 and (@loc.y - @level.start.y).abs < 20
+        @loss_life_ani = false
+        @animation_playing = false
+        @invulnerable = false
+        @travel_step = nil
+      end
+    end
   end
 
   def adjust_velocity(left_pressed, right_pressed, up_pressed, down_pressed)
@@ -289,6 +320,17 @@ class Player
         not would_fit_right?
   end
 
+  def update_player_angle
+    if on_left_wall? and not near_floor?
+      @angle = 20.0
+    elsif on_right_wall? and not near_floor?
+      @angle = -20.0
+    else
+      @angle = @vel_x * 2
+      @angle += 3*Math.sin(Gosu::milliseconds / 133.7) if @vel_x.abs == @config[:max_run_speed]
+    end
+  end
+
   def jump
     if on_floor?
       @vel_y -= @config[:jumpheight]
@@ -314,29 +356,29 @@ class Player
   def check_health
     if @health < 0
       @health = 0
-      @dead = true
+      lose_life
     end
   end
 
   def check_damaging_tiles
     # left
     ((@loc.y-@image.height/4).to_i..(@loc.y+@image.height/4).to_i).each do |y|
-      @dead = true if @level.tile_instant_death?(@loc.x+20,y)
+      lose_life if @level.tile_instant_death?(@loc.x+20,y)
     end
 
     #right
     ((@loc.y-@image.height/4).to_i..(@loc.y+@image.height/4).to_i).each do |y|
-      @dead = true if @level.tile_instant_death?(@loc.x+@image.width-20,y)
+      lose_life if @level.tile_instant_death?(@loc.x+@image.width-20,y)
     end
 
     #up
     ((@loc.x+@image.width/2-15).to_i..(@loc.x+@image.width/2+15).to_i).each do |x|
-      @dead = true if @level.tile_instant_death?(x,@loc.y-@image.height/4)
+      lose_life if @level.tile_instant_death?(x,@loc.y-@image.height/4)
     end
 
     #down
     ((@loc.x+@image.width/2-15).to_i..(@loc.x+@image.width/2+15).to_i).each do |x|
-      @dead = true if @level.tile_instant_death?(x,@loc.y+@image.height/4)
+      lose_life if @level.tile_instant_death?(x,@loc.y+@image.height/4)
     end
   end
 

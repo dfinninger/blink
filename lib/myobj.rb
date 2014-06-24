@@ -27,6 +27,13 @@ module MyObj
       k = result.y.abs <= b.y.abs
       j and k
     end
+    def *(b)
+      raise ArgumentError unless b.respond_to?(:to_f)
+      result = dup
+      result.x *= b
+      result.y *= b
+      result
+    end
 
     def to_a
       [@x, @y]

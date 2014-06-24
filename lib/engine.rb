@@ -58,13 +58,14 @@ class GameWindow < Gosu::Window
     @player = Player.new(self)
     log self, "Player Loaded" if @config[:logging_enabled]
     @player.warp(@level.start)
+    @player.warp(MyObj::Loc.new(@level.start.x+80, @level.start.y))
     log self, "Player Warped" if @config[:logging_enabled]
 
     # cursor -----------------------------------------------------------------------------
     @cursor = Cursor.new(self, media_path("cursors/windows_cursor.png"), true)
 
     # Game Font --------------------------------------------------------------------------
-    @font = Gosu::Font.new(self, Gosu::default_font_name, 18)
+    @font = Gosu::Font.new(self, media_path("fonts/Roboto-Regular.ttf"), 20)
     @large_font = Gosu::Font.new(self, Gosu::default_font_name, 100)
     @edit_mode_txt = Gosu::Image.from_text(self, "-- EDIT MODE --", Gosu::default_font_name, 50)
     @death_text_strings = [
@@ -152,6 +153,7 @@ class GameWindow < Gosu::Window
       draw_editmode if @config[:edit_mode]
       draw_block_selector if @config[:edit_mode]
       draw_noclip if @player.config[:noclip]
+      draw_loss_life_ani if @player.loss_life_ani
     end
   end
 
@@ -184,9 +186,10 @@ class GameWindow < Gosu::Window
   # Drawing functions --------------------------------------------------------------------------------------------------
 
   def draw_hud
-    @font.draw("Player HP: <c=ff0000>#{@player.health}/#{@player.base_health}</c>", 10, 10, ZOrder::HUD)
-    @font.draw("Blink Charge: <c=00ff00>#{@player.blink_charge}%</c>", 10, 30, ZOrder::HUD)
-    @font.draw("Gems Remaining: <c=ff0000>#{@level.gems.length}", self.width-175, 10, ZOrder::HUD)
+    @font.draw("Player HP:\t<c=ff0000>#{@player.health}/#{@player.base_health}</c>", 10, 10, ZOrder::HUD)
+    @font.draw("Blink Chrg:\t<c=00ff00>#{@player.blink_charge}%</c>", 10, 30, ZOrder::HUD)
+    @font.draw("Gems Left:\t<c=ff0000>#{@level.gems.length}", 10, 50, ZOrder::HUD)
+    @font.draw("Lives:\t\t\t<c=ff0000>#{@player.lives}", 10, 70, ZOrder::HUD)
   end
 
   def draw_debug
@@ -255,6 +258,15 @@ class GameWindow < Gosu::Window
     @win_text.draw(self.width/2 - @win_text.width/2, self.height/4, ZOrder::HUD)
     #@font.draw("Continue? (Enter)", self.width/2-65, self.height/4*3, ZOrder::HUD)
     @font.draw("Quit? (Esc)", self.width/2-40, self.height/4*3+20, ZOrder::HUD)
+  end
+
+  def draw_loss_life_ani
+    flash = 0.5 * Math.sin(Gosu::milliseconds / 133.7)
+    self.draw_quad(0, 0, Gosu::Color.new((flash * 0xff).to_i, 0xff, 0x00, 0x00),
+                   self.width, 0, Gosu::Color.new((flash * 0xff).to_i, 0xff, 0x00, 0x00),
+                   0, self.height, Gosu::Color.new((flash * 0xff).to_i, 0xff, 0x00, 0x00),
+                   self.width, self.height, Gosu::Color.new((flash * 0xff).to_i, 0xff, 0x00, 0x00),
+                   ZOrder::HUD)
   end
 
   # Update functions ---------------------------------------------------------------------------------------------------
