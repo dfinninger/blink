@@ -253,6 +253,7 @@ class Player
         @invulnerable = false
         @travel_step = nil
         @vel_x = @vel_y = 0
+        @health = @config[:base_health]
       end
     elsif @blink_ani
       @angle += 36
