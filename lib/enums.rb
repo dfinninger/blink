@@ -10,6 +10,7 @@ module Tiles
   Gem = 18
   Checkpoint = 35
   BkgTile = 9
+  Blank = 6
 end
 
 

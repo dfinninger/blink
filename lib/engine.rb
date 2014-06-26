@@ -61,6 +61,11 @@ class GameWindow < Gosu::Window
     @player.warp(@level.start)
     log self, "Player Warped" if @config[:logging_enabled]
 
+    # enemies ----------------------------------------------------------------------------
+    @enemies = Array.new(@level.enemies.size) {Enemy.new(self, @level)}
+    @level.enemies.each_with_index { |enemy, idx| @enemies[idx].warp(enemy[:x]*80, enemy[:y]*80) }
+
+
     # cursor -----------------------------------------------------------------------------
     @cursor = Cursor.new(self, media_path("cursors/windows_cursor.png"), true)
 
@@ -124,6 +129,7 @@ class GameWindow < Gosu::Window
     update_camera
     block_painter if @config[:edit_mode]
     update_block_selector if @config[:edit_mode]
+    @enemies.each { |e| e.move }
 
     if @level.gems.length == 0 and not @level_complete and (@player.loc - @level.goal <= @goal_fudge_factor)
       @level_complete = true
@@ -133,7 +139,7 @@ class GameWindow < Gosu::Window
       close
     end
 
-
+    @enemies.each { |e| @player.lose_life if collision?(@player, e)}
   end
 
   def draw
@@ -155,6 +161,7 @@ class GameWindow < Gosu::Window
       draw_noclip if @player.config[:noclip]
       draw_loss_life_ani if @player.loss_life_ani
       draw_box
+      @enemies.each { |e| e.draw(@camera) }
     end
   end
 
@@ -304,7 +311,7 @@ class GameWindow < Gosu::Window
                    self.width, self.height, Gosu::Color.new((@alpha * 0xff).to_i, 0x00, 0x00, 0x00),
                    ZOrder::HUD)
     @win_text.draw(self.width/2 - @win_text.width/2, self.height/4, ZOrder::HUD)
-    #@font.draw("Continue? (Enter)", self.width/2-65, self.height/4*3, ZOrder::HUD)
+    @font.draw("Continue? (Enter)", self.width/2-65, self.height/4*3, ZOrder::HUD)
     @font.draw("Quit? (Esc)", self.width/2-40, self.height/4*3+20, ZOrder::HUD)
   end
 

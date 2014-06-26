@@ -11,3 +11,5 @@
 :jumpheight: 15
 :noclip: false
 :noclip_speed: 10
+:walljump_enabled: true
+:blink_jump_enabled: true

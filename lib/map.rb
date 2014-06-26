@@ -8,7 +8,7 @@ end
 class Map
   TILE_SIZE = 80
   attr_accessor :gems
-  attr_reader :start, :goal, :editable, :next_level, :background
+  attr_reader :start, :goal, :editable, :next_level, :background, :enemies
   def initialize(window, level_name)
     @tileset = Gosu::Image.load_tiles(window, media_path("tilesets/plat_tiles.png"), TILE_SIZE, TILE_SIZE, true)
     @gem_image = @tileset[Tiles::Gem]
@@ -22,7 +22,8 @@ class Map
     @background = @map[:background]
     @next_level = @map[:next_level] || nil
     @textboxes = @map[:textboxes]
-    @tiles  = Array.new(@map[:width]) { |x| Array.new(@map[:height]) { |y| nil } }  #{:x => x, :y => y, :tile => Tiles::BkgTile, :angle => 0.0}
+    @enemies = @map[:enemies] || []
+    @tiles  = Array.new(@map[:width]) { |x| Array.new(@map[:height]) { |y| {:x => x, :y => y, :tile => Tiles::Blank, :angle => 0.0} } }
     @map[:tiles].each do |tile|
       @tiles[tile[:x]][tile[:y]] = tile
     end
@@ -53,7 +54,12 @@ class Map
 
   def solid?(x, y)
     return true if x > width-10 or y > height-10
-    return false unless @tiles[x / TILE_SIZE][y / TILE_SIZE]
+    begin
+      return false unless @tiles[x / TILE_SIZE][y / TILE_SIZE]
+    rescue NoMethodError => e
+      puts "Something strange happened here..."
+      return true
+    end
     [Tiles::Stone].include?(@tiles[x / TILE_SIZE][y / TILE_SIZE][:tile])
   end
 

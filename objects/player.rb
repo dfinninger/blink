@@ -68,6 +68,7 @@ class Player
     @loss_life_ani = false
     @blink_ani = false
     @blink_dest = nil
+    @blink_jump = false
   end
 
   def warp(loc)
@@ -238,6 +239,7 @@ class Player
     @blink_ani = true
     @invulnerable = true
     @animation_playing = true
+    @blink_jump = true
   end
 
   def animation_handler
@@ -329,6 +331,7 @@ class Player
     ((@loc.x+@image.width/2-15).to_i..(@loc.x+@image.width/2+15).to_i).each do |x|
       if @level.solid?(x,@loc.y+@image.height/2)
         @already_walljumped = false
+        @blink_jump = false
         return true
       end
     end
@@ -364,17 +367,20 @@ class Player
       @vel_y -= @config[:jumpheight]
       @jump_sound.play
     else
-      if on_left_wall? and not @already_walljumped
+      if @config[:walljump_enabled] and on_left_wall? and not @already_walljumped
         @vel_y -= @config[:jumpheight] * 0.666
         @loc.x += 1
         @vel_x += @config[:speed]
         @already_walljumped = true
         @jump_sound.play
-      elsif on_right_wall? and not @already_walljumped
+      elsif @config[:walljump_enabled] and on_right_wall? and not @already_walljumped
         @vel_y -= @config[:jumpheight] * 0.666
         @loc.x -= 1
         @vel_x -= @config[:speed]
         @already_walljumped = true
+        @jump_sound.play
+      elsif @blink_jump and @config[:blink_jump_enabled]
+        @vel_y -= @config[:jumpheight] * 0.666
         @jump_sound.play
       end
     end
