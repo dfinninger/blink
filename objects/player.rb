@@ -43,6 +43,7 @@ class Player
     @loc = MyObj::Loc.new(0,0)
     @jump_millis = @blink_millis = 0
     @foot = @right = @left = 0
+    @checkpoint = @level.start
 
     # set player variables ------------------------------------------------------------
     @health = @config[:current_health]
@@ -87,6 +88,11 @@ class Player
     if @animation_playing
       animation_handler
       return
+    end
+
+    if @level.checkpoint?(*@loc.to_a)
+      @checkpoint.x = @loc.x
+      @checkpoint.y = @loc.y
     end
 
     adjust_velocity(left_pressed, right_pressed, up_pressed, down_pressed)
@@ -227,9 +233,9 @@ class Player
   def animation_handler
     if @loss_life_ani
       @angle += 3.6
-      @travel_step = (@level.start - @loc)*0.01 unless @travel_step
+      @travel_step = (@checkpoint - @loc)*0.01 unless @travel_step
       @loc = @loc + @travel_step
-      if (@loc.x - @level.start.x).abs < 20 and (@loc.y - @level.start.y).abs < 20
+      if (@loc.x - @checkpoint.x).abs < 20 and (@loc.y - @checkpoint.y).abs < 20
         @loss_life_ani = false
         @animation_playing = false
         @invulnerable = false

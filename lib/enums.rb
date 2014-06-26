@@ -8,6 +8,7 @@ module Tiles
   Start, Goal, Spike = *0..2
   Stone = 10
   Gem = 18
+  Checkpoint = 35
 end
 
 

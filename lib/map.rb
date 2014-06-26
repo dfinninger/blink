@@ -30,6 +30,8 @@ class Map
 
     @font = Gosu::Font.new(window, media_path("fonts/Roboto-Regular.ttf"), 30)
     @editable = @map[:editable]
+
+    @degrading_tiles = []
   end
 
   def draw(camera)
@@ -55,6 +57,13 @@ class Map
   def tile_instant_death?(x, y)
     if @tiles[x / TILE_SIZE][y / TILE_SIZE]
       [Tiles::Spike].include?(@tiles[x / TILE_SIZE][y / TILE_SIZE][:tile])
+    end
+  end
+
+  def checkpoint?(x, y)
+    if @tiles[x / TILE_SIZE][y / TILE_SIZE] and [Tiles::Checkpoint].include?(@tiles[x / TILE_SIZE][y / TILE_SIZE][:tile])
+      add_tile_degrade(x, y)
+      return true
     end
   end
 
@@ -94,6 +103,10 @@ class Map
   def save
     @map[:tiles] = []
 
+    @degrading_tiles.each do |tile|
+      @tiles[tile[:x]][tile[:y]][:tile] -= tile[:i]
+    end
+
     @map[:height].times do |y|
       @map[:width].times do |x|
         if @tiles[x][y]
@@ -108,6 +121,15 @@ class Map
     end
 
     File.open(@file, 'w+') {  |f| f.write(@map.to_yaml) }
+  end
+
+  def degrade_tiles
+    @degrading_tiles.each do |tile|
+      if tile[:i] < 5
+        @tiles[tile[:x]][tile[:y]][:tile] += 1
+        tile[:i] += 1
+      end
+    end
   end
 
   private
@@ -127,5 +149,9 @@ class Map
         :tiles => [],
         :gems => []
     }
+  end
+
+  def add_tile_degrade(x, y)
+    @degrading_tiles.push({:x => x / TILE_SIZE, :y => y / TILE_SIZE, :i => 0})
   end
 end

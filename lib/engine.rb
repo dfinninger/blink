@@ -100,6 +100,7 @@ class GameWindow < Gosu::Window
     # State Variables --------------------------------------------------------------------
     @level_complete = false
     @eol_millis = 0
+    @degrade_millis = 0
     @edit_block_selected = Tiles::Stone
     @edit_block_angle = 0.0
 
@@ -120,6 +121,7 @@ class GameWindow < Gosu::Window
                    (button_down? Gosu::KbDown or button_down? Gosu::KbS),
                    (button_down? Gosu::KbSpace))
 
+    @level.degrade_tiles
     update_camera
     block_painter if @config[:edit_mode]
     update_block_selector if @config[:edit_mode]
@@ -235,9 +237,9 @@ class GameWindow < Gosu::Window
 
   def draw_block_selector
     self.draw_quad(self.width-180, 65,  Gosu::Color.argb(0xcc000000),
-                   self.width-25, 65,  Gosu::Color.argb(0xcc000000),
-                   self.width-180, 195, Gosu::Color.argb(0xcc000000),
-                   self.width-25, 195, Gosu::Color.argb(0xcc000000),
+                   self.width-25,  65,  Gosu::Color.argb(0xcc000000),
+                   self.width-180, 215, Gosu::Color.argb(0xcc000000),
+                   self.width-25,  215, Gosu::Color.argb(0xcc000000),
                    ZOrder::HUD)
     @font.draw("Current Block:", self.width - 175, 70, ZOrder::HUD)
     if @edit_block_selected == Tiles::Stone then
@@ -268,6 +270,12 @@ class GameWindow < Gosu::Window
       @font.draw("<c=00ff00>5: Goal</c>, <c=ff0000>#{@edit_block_angle}</c>", self.width - 150, 170, ZOrder::HUD)
     else
       @font.draw("5: Goal", self.width - 150, 170, ZOrder::HUD)
+    end
+
+    if @edit_block_selected == Tiles::Checkpoint then
+      @font.draw("<c=00ff00>6: Checkpoint</c>, <c=ff0000>#{@edit_block_angle}</c>", self.width - 150, 190, ZOrder::HUD)
+    else
+      @font.draw("6: Checkpoint", self.width - 150, 190, ZOrder::HUD)
     end
   end
 
@@ -315,6 +323,8 @@ class GameWindow < Gosu::Window
       @edit_block_selected = Tiles::Start
     elsif button_down? Gosu::Kb5 or button_down? Gosu::KbNumpad5
       @edit_block_selected = Tiles::Goal
+    elsif button_down? Gosu::Kb6 or button_down? Gosu::KbNumpad6
+      @edit_block_selected = Tiles::Checkpoint
     end
   end
 
