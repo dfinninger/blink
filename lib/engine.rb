@@ -32,31 +32,32 @@ end
 class GameWindow < Gosu::Window
   include BlinkUtils
 
-  attr_reader :levelbox, :level
+  attr_reader :level
   def initialize
     @config = YAML.load_file('config/engine.yml')
     super @config[:width], @config[:height], @config[:fullscreen]
     self.caption = "Blink"
+    @player = Player.new(self)
+    log self, "Player Loaded" if @config[:logging_enabled]
+    self.load_new(@config[:level])
+  end
 
+  def load_new(level)
     # Camera -----------------------------------------------------------------------------
     @camera = Camera.new(0, 0, :stop_at_wall)
     log self, "Camera loaded" if @config[:logging_enabled]
 
     # init level -------------------------------------------------------------------------
-    @level = Map.new(self, @config[:level])
+    @level = Map.new(self, level)
     @goal_fudge_factor = MyObj::Loc.new(65,65)
-
-    # Walls, ceiling and floor -----------------------------------------------------------
-    @levelbox = MyObj::LevelBox.new(0, @level.width, 0, @level.height)
+    @player.give_level
 
     # Background Image -------------------------------------------------------------------
     @background = Background.new(self, 0, 0, media_path("backgrounds/bluewood.jpg"), ZOrder::Background)
     log self, "Background Loaded" if @config[:logging_enabled]
 
 
-    # Player -----------------------------------------------------------------------------
-    @player = Player.new(self)
-    log self, "Player Loaded" if @config[:logging_enabled]
+    # Player warp ------------------------------------------------------------------------
     @player.warp(@level.start)
     log self, "Player Warped" if @config[:logging_enabled]
 
@@ -94,9 +95,6 @@ class GameWindow < Gosu::Window
     # Music ------------------------------------------------------------------------------
     @game_music = Gosu::Song.new(self, media_path("sounds/DST-2ndBallad.ogg"))
 
-    # Wall padding -----------------------------------------------------------------------
-    @padding = @config[:levelbox_padding]
-
     # State Variables --------------------------------------------------------------------
     @level_complete = false
     @eol_millis = 0
@@ -119,7 +117,8 @@ class GameWindow < Gosu::Window
                    (button_down? Gosu::KbRight or button_down? Gosu::KbD),
                    (button_down? Gosu::KbUp or button_down? Gosu::KbW),
                    (button_down? Gosu::KbDown or button_down? Gosu::KbS),
-                   (button_down? Gosu::KbSpace))
+                   (button_down? Gosu::KbSpace),
+                   (button_down? Gosu::KbLeftShift or button_down? Gosu::KbRightShift))
 
     @level.degrade_tiles
     update_camera
@@ -155,6 +154,7 @@ class GameWindow < Gosu::Window
       draw_block_selector if @config[:edit_mode]
       draw_noclip if @player.config[:noclip]
       draw_loss_life_ani if @player.loss_life_ani
+      draw_box
     end
   end
 
@@ -279,6 +279,13 @@ class GameWindow < Gosu::Window
     end
   end
 
+  def draw_box
+    self.draw_line(*@camera.world_to_screen(MyObj::Loc.new(0,0)).to_a, Gosu::Color::WHITE, *@camera.world_to_screen(MyObj::Loc.new(@level.width, 0)).to_a, Gosu::Color::WHITE)
+    self.draw_line(*@camera.world_to_screen(MyObj::Loc.new(1, 0)).to_a, Gosu::Color::WHITE, *@camera.world_to_screen(MyObj::Loc.new(1, @level.height)).to_a, Gosu::Color::WHITE)
+    self.draw_line(*@camera.world_to_screen(MyObj::Loc.new(@level.width, 0)).to_a, Gosu::Color::WHITE, *@camera.world_to_screen(MyObj::Loc.new(@level.width, @level.height)).to_a, Gosu::Color::WHITE)
+    self.draw_line(*@camera.world_to_screen(MyObj::Loc.new(0, @level.height)).to_a, Gosu::Color::WHITE, *@camera.world_to_screen(MyObj::Loc.new(@level.width, @level.height)).to_a, Gosu::Color::WHITE)
+  end
+
   def draw_death
     self.draw_quad(0, 0, Gosu::Color.new((@alpha * 0xff).to_i, 0xff, 0x00, 0x00),
                    self.width, 0, Gosu::Color.new((@alpha * 0xff).to_i, 0xff, 0x00, 0x00),
@@ -286,7 +293,7 @@ class GameWindow < Gosu::Window
                    self.width, self.height, Gosu::Color.new((@alpha * 0xff).to_i, 0x00, 0x00, 0x00),
                    ZOrder::HUD)
     @death_text.draw(self.width/2 - @death_text.width/2, self.height/4, ZOrder::HUD)
-    #@font.draw("Continue? (Enter)", self.width/2-65, self.height/4*3, ZOrder::HUD)
+    @font.draw("Continue? (Enter)", self.width/2-65, self.height/4*3, ZOrder::HUD)
     @font.draw("Quit? (Esc)", self.width/2-40, self.height/4*3+20, ZOrder::HUD)
   end
 
@@ -344,10 +351,10 @@ class GameWindow < Gosu::Window
       @camera.x = @player.loc.x - self.width/2
       @camera.y = @player.loc.y - self.height/2 - 50
 
-      @camera.x = @padding if @camera.x <= @padding
-      @camera.x = @level.width-self.width+@padding if @camera.x >= @level.width-self.width+@padding
-      @camera.y = @padding if @camera.y <= @padding
-      @camera.y = @level.height-self.height+@padding if @camera.y >= @level.height-self.height+@padding
+      @camera.x = 0 if @camera.x <= 0
+      @camera.x = @level.width-self.width+1 if @camera.x >= @level.width-self.width+1
+      @camera.y = 0 if @camera.y <= 0
+      @camera.y = @level.height-self.height+1 if @camera.y >= @level.height-self.height+1
     end
     log self, "Camera loc - x: #{@camera.x}, y: #{@camera.y}" if @config[:logging_enabled]
   end
@@ -367,10 +374,22 @@ class GameWindow < Gosu::Window
   def on_player_death
     @game_music.volume <= 0 ? @game_music.stop : @game_music.volume = @game_music.volume - 0.005
     @alpha = @alpha >= 1 ? 1 : @alpha + 0.005
+    revive if button_down? Gosu::KbEnter or button_down? Gosu::KbReturn
   end
   def on_win
     @game_music.volume <= 0 ? @game_music.stop : @game_music.volume = @game_music.volume - 0.005
     @alpha = @alpha >= 1 ? 1 : @alpha + 0.005
+    next_level if button_down? Gosu::KbEnter or button_down? Gosu::KbReturn
+  end
+
+  def revive
+    flush
+    @player = Player.new(self)
+    load_new(@config[:level])
+  end
+
+  def next_level
+    @level.next_level ? load_new(@level.next_level) : close
   end
 
 end

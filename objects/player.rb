@@ -19,9 +19,9 @@ class Player
   MAX_PERCENT = 100
   MAX_FALL_SPEED = 50
 
-  attr_accessor :loc, :health, :base_health, :recently_hit, :on_left_wall,
+  attr_accessor :loc, :health, :base_health, :recently_hit, :lives, :on_left_wall,
                 :on_right_wall, :off_ground, :config, :gems_collected, :dead
-  attr_reader :foot, :left, :right, :blink_charge, :blink_prep, :lives, :loss_life_ani
+  attr_reader :foot, :left, :right, :blink_charge, :blink_prep, :loss_life_ani
 
   def initialize(window)
     # load config ---------------------------------------------------------------------
@@ -31,8 +31,6 @@ class Player
     # init window for player ----------------------------------------------------------
     @window = window
       log self, "Player knows about window: #{@window}"  if @config[:logging_enabled]
-    @level = @window.level
-    log self, "Player knows about level: #{@level}"  if @config[:logging_enabled]
 
     # load resources ------------------------------------------------------------------
     @image = Gosu::Image.new(window, media_path("characters/Character Boy.png"), false)
@@ -44,7 +42,7 @@ class Player
     @loc = MyObj::Loc.new(0,0)
     @jump_millis = @blink_millis = 0
     @foot = @right = @left = 0
-    @checkpoint = @level.start
+    @checkpoint = nil
 
     # set player variables ------------------------------------------------------------
     @health = @config[:current_health]
@@ -83,7 +81,12 @@ class Player
     {:x => hitbox_x, :y => hitbox_y}
   end
 
-  def update(left_pressed, right_pressed, up_pressed, down_pressed, blink_button_pressed)
+  def give_level
+    @level = @window.level
+    @checkpoint = @level.start
+  end
+
+  def update(left_pressed, right_pressed, up_pressed, down_pressed, blink_button_pressed, shift_pressed)
     if @dead
       on_player_death
       return
@@ -94,16 +97,15 @@ class Player
       return
     end
 
-    if @level.checkpoint?(*@loc.to_a)
+    if not @config[:noclip] and @level.checkpoint?(*@loc.to_a)
       @checkpoint.x = @loc.x
       @checkpoint.y = @loc.y
     end
 
     adjust_velocity(left_pressed, right_pressed, up_pressed, down_pressed)
-    @config[:noclip] ? move_noclip(left_pressed, right_pressed, up_pressed, down_pressed) : move
+    @config[:noclip] ? move_noclip(left_pressed, right_pressed, up_pressed, down_pressed, shift_pressed) : move
     collect_goodies(@level.gems)
 
-    check_wall_collisions
     @health -= 2 if inside_wall? unless @config[:noclip]
 
     update_blink(blink_button_pressed)
@@ -172,12 +174,13 @@ class Player
     end
   end
 
-  def move_noclip(l, r, u, d)
+  def move_noclip(l, r, u, d, s)
     @vel_x = @vel_y = 0
-    @loc.x -= @config[:noclip_speed] if l
-    @loc.x += @config[:noclip_speed] if r
-    @loc.y -= @config[:noclip_speed] if u
-    @loc.y += @config[:noclip_speed] if d
+    speed = s ? @config[:noclip_speed]*2 : @config[:noclip_speed]
+    @loc.x -= speed if l
+    @loc.x += speed if r
+    @loc.y -= speed if u
+    @loc.y += speed if d
   end
 
   def friction_and_gravity(r, l)
@@ -242,7 +245,7 @@ class Player
       @angle += 3.6
       @travel_step = (@checkpoint - @loc)*0.01 unless @travel_step
       @loc = @loc + @travel_step
-      if (@loc.x - @checkpoint.x).abs < 20 and (@loc.y - @checkpoint.y).abs < 20
+      if (@loc.x - @checkpoint.x).abs < 5 and (@loc.y - @checkpoint.y).abs < 5
         @loss_life_ani = false
         @animation_playing = false
         @invulnerable = false
@@ -407,30 +410,6 @@ class Player
     #down
     ((@loc.x+@image.width/2-15).to_i..(@loc.x+@image.width/2+15).to_i).each do |x|
       lose_life if @level.tile_instant_death?(x,@loc.y+@image.height/4)
-    end
-  end
-
-  def check_wall_collisions
-    if @loc.x >= @window.levelbox.right-@image.width/2
-      @loc.x = @window.levelbox.right-@image.width/2
-      @vel_x = 0
-      @on_right_wall = true
-    elsif @loc.x <= @window.levelbox.left+@image.width/2
-      @loc.x = @window.levelbox.left+@image.width/2
-      @vel_x = 0
-      @on_left_wall = true
-    else
-      @on_left_wall = false
-      @on_right_wall = false
-    end
-    if @loc.y >= @window.levelbox.bot-@image.height/2
-      @loc.y = @window.levelbox.bot-@image.height/2
-      @vel_y = 0
-      @off_ground = false
-      @already_walljumped = false
-    elsif @loc.y <= @window.levelbox.top+@image.height/2
-      @loc.y = @window.levelbox.top+@image.height/2
-      @vel_y = 0
     end
   end
 

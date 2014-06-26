@@ -8,7 +8,7 @@ end
 class Map
   TILE_SIZE = 80
   attr_accessor :gems
-  attr_reader :start, :goal, :editable
+  attr_reader :start, :goal, :editable, :next_level
   def initialize(window, level_name)
     @tileset = Gosu::Image.load_tiles(window, media_path("tilesets/plat_tiles.png"), TILE_SIZE, TILE_SIZE, true)
     @gem_image = @tileset[Tiles::Gem]
@@ -19,6 +19,7 @@ class Map
     @map = File.file?(@file) ? YAML.load_file(@file) : new_level
     @start  = MyObj::Loc.new(@map[:start][:x] * TILE_SIZE, @map[:start][:y] * TILE_SIZE)
     @goal   = MyObj::Loc.new(@map[:goal][:x] * TILE_SIZE, @map[:goal][:y] * TILE_SIZE)
+    @next_level = @map[:next_level] || nil
     @textboxes = @map[:textboxes]
     @tiles  = Array.new(@map[:width]) { |x| Array.new(@map[:height]) { |y| nil } }
     @map[:tiles].each do |tile|
@@ -50,6 +51,7 @@ class Map
   end
 
   def solid?(x, y)
+    return true if x > width-10 or y > height-10
     return false unless @tiles[x / TILE_SIZE][y / TILE_SIZE]
     [Tiles::Stone].include?(@tiles[x / TILE_SIZE][y / TILE_SIZE][:tile])
   end
@@ -77,6 +79,7 @@ class Map
 
   def create_block(camera, loc, block, angle = 0.0)
     x, y = *camera.screen_to_world(loc).to_a
+    return if x > width-10 or y > height-10
     if block == Tiles::Gem
       if (Gosu::milliseconds - @gem_timeout) > 200
         @gems.push(Collectibles::Gem.new(@gem_image, x - 25, y))

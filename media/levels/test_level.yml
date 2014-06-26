@@ -2,6 +2,7 @@
 :width: 50
 :height: 50
 :editable: true
+:next_level: level_2
 :textboxes:
 - :text: Welcome to blink!
   :x: 1
