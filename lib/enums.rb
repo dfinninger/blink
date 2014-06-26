@@ -9,6 +9,7 @@ module Tiles
   Stone = 10
   Gem = 18
   Checkpoint = 35
+  BkgTile = 9
 end
 
 

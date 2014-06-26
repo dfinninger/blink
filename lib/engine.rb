@@ -53,7 +53,7 @@ class GameWindow < Gosu::Window
     @player.give_level
 
     # Background Image -------------------------------------------------------------------
-    @background = Background.new(self, 0, 0, media_path("backgrounds/bluewood.jpg"), ZOrder::Background)
+    @background = Background.new(self, 0, 0, media_path("backgrounds/#{@level.background}"), ZOrder::Background)
     log self, "Background Loaded" if @config[:logging_enabled]
 
 
