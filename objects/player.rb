@@ -37,6 +37,7 @@ class Player
     # load resources ------------------------------------------------------------------
     @image = Gosu::Image.new(window, media_path("characters/Character Boy.png"), false)
       log self, "Player Image (#{@image}) loaded"  if @config[:logging_enabled]
+    @jump_sound = Gosu::Sample.new(window, media_path("sounds/jumping.ogg"))
 
     # normalize angles and locations --------------------------------------------------
     @vel_x = @vel_y = @angle = 0.0
@@ -66,6 +67,9 @@ class Player
     @invulnerable = false
     @wobble_millis = 0
     @travel_step = nil
+    @loss_life_ani = false
+    @blink_ani = false
+    @blink_dest = nil
   end
 
   def warp(loc)
@@ -227,7 +231,10 @@ class Player
   end
 
   def blink
-    @loc.x += (@current_blink_length * (@vel_x <=> 0))
+    @blink_dest = MyObj::Loc.new(@loc.x + (@current_blink_length * (@vel_x <=> 0)), @loc.y)
+    @blink_ani = true
+    @invulnerable = true
+    @animation_playing = true
   end
 
   def animation_handler
@@ -237,6 +244,17 @@ class Player
       @loc = @loc + @travel_step
       if (@loc.x - @checkpoint.x).abs < 20 and (@loc.y - @checkpoint.y).abs < 20
         @loss_life_ani = false
+        @animation_playing = false
+        @invulnerable = false
+        @travel_step = nil
+        @vel_x = @vel_y = 0
+      end
+    elsif @blink_ani
+      @angle += 36
+      @travel_step = (@blink_dest - @loc)*0.1 unless @travel_step
+      @loc = @loc + @travel_step
+      if (@loc.x - @blink_dest.x).abs < 5
+        @blink_ani = false
         @animation_playing = false
         @invulnerable = false
         @travel_step = nil
@@ -253,7 +271,7 @@ class Player
       @vel_x += on_floor? ? @config[:speed] : @config[:speed]/5
     end
     if up_pressed then
-      if (Gosu::milliseconds - @jump_millis) > 250 and not @up_still_pressed
+      if (Gosu::milliseconds - @jump_millis) > 200 and not @up_still_pressed
         jump
         @jump_millis = Gosu::milliseconds
       end
@@ -341,17 +359,20 @@ class Player
   def jump
     if on_floor?
       @vel_y -= @config[:jumpheight]
+      @jump_sound.play
     else
       if on_left_wall? and not @already_walljumped
         @vel_y -= @config[:jumpheight] * 0.666
         @loc.x += 1
         @vel_x += @config[:speed]
         @already_walljumped = true
+        @jump_sound.play
       elsif on_right_wall? and not @already_walljumped
         @vel_y -= @config[:jumpheight] * 0.666
         @loc.x -= 1
         @vel_x -= @config[:speed]
         @already_walljumped = true
+        @jump_sound.play
       end
     end
   end
